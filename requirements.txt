@@ -1,0 +1,7 @@
+numpy
+tqdm
+SimpleITK
+scipy
+scikit-learn
+git+https://github.com/DIAGNijmegen/picai_eval
+git+https://github.com/DIAGNijmegen/picai_prep
