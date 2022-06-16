@@ -111,11 +111,11 @@ def boxes2det(in_dir_pred, out_dir_det, target_label=None, threshold=0.0, min_nu
 def main():
     # acquire and parse input and output paths
     parser = argparse.ArgumentParser(description='Generate detection maps from nnDetection boxes')
-    parser.add_argument("i", "--input", type=str, required=True,
+    parser.add_argument("-i", "--input", type=str, required=True,
                         help="Path to folder with model predicitons (nnDetection boxes)")
-    parser.add_argument("o", "--output", type=str, required=False,
+    parser.add_argument("-o", "--output", type=str, required=False,
                         help="Path to store detection maps. Default: input directory + _detection_maps")
-    parser.add_argument("l", "--target_label", type=int, required=False,
+    parser.add_argument("-l", "--target_label", type=int, required=False,
                         help="Class to create detection maps for. Default: 0, asserting no other classes exist.")
     args = parser.parse_args()
 
