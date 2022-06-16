@@ -96,10 +96,16 @@ for fold, ds_config in valid_splits.items():
     print(f"Validation fold {fold} has cases: {ds_config['subject_list']}")
 ```
 
-Additionally, we prepared 5-fold cross-validation splits of all cases with an [expert-derived csPCa annotation](https://github.com/DIAGNijmegen/picai_labels/tree/main/csPCa_lesion_delineations/human_expert). These splits are subsets of the splits above. You can load, modify or store these splits as follows:
+Additionally, we prepared 5-fold cross-validation splits of all cases with an [expert-derived csPCa annotation](https://github.com/DIAGNijmegen/picai_labels/tree/main/csPCa_lesion_delineations/human_expert). These splits are subsets of the splits above. You can load these splits as follows:
 
 ```python
 from picai_baseline.splits.picai_nnunet import train_splits, valid_splits
+```
+
+When using `picai_eval` from the command line, we recommend saving the splits to disk. Then, you can pass these to `picai_eval` to ensure all cases were found. You can export the labelled cross-validation splits using:
+
+```bash
+python -m picai_baseline.splits.picai_nnunet --output "/workdir/splits/picai_nnunet"
 ```
 
 

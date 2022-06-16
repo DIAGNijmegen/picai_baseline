@@ -13,6 +13,43 @@
 #  limitations under the License.
 
 
+import argparse
+import json
+from pathlib import Path
+from typing import Any, Dict, Optional
+
+
+def export_splits(
+    train_splits: Optional[Dict[str, Any]] = None,
+    valid_splits: Optional[Dict[str, Any]] = None,
+    output_folder: Optional[str] = None,
+) -> None:
+    """Export dataset configuration files to disk"""
+    if output_folder is None:
+        parser = argparse.ArgumentParser(description='Command Line Arguments')
+        parser.add_argument("-o", "--output", type=str, required=True,
+                            help="Output path to store cross-validation splits")
+        args = parser.parse_args()
+        output_folder = args.output
+
+    output_folder: Path = Path(output_folder)
+    output_folder.mkdir(parents=True, exist_ok=True)
+
+    if train_splits is not None:
+        for fold, ds_config in train_splits.items():
+            path = output_folder / f"ds-config-train-fold-{fold}.json"
+            print(f"Saving training fold {fold} with {len(ds_config['subject_list'])} cases to {path}")
+            with open(path, "w") as fp:
+                json.dump(ds_config, fp, indent=4)
+
+    if valid_splits is not None:
+        for fold, ds_config in valid_splits.items():
+            path = output_folder / f"ds-config-valid-fold-{fold}.json"
+            print(f"Saving training fold {fold} with {len(ds_config['subject_list'])} cases to {path}")
+            with open(path, "w") as fp:
+                json.dump(ds_config, fp, indent=4)
+
+
 subject_list_annotated = [
     '10000_1000000',
     '10001_1000001',
