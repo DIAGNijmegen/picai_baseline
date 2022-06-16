@@ -78,18 +78,24 @@ def boxes2det(in_dir_pred, out_dir_det, target_label=None, threshold=0.0, min_nu
                 slice(int(pbox[0]) + 1, int(pbox[2])),
                 slice(int(pbox[1]) + 1, int(pbox[3])),
             ]
+            neighbourhood_slicing = [
+                slice(int(pbox[0]), int(pbox[2]) + 1),
+                slice(int(pbox[1]), int(pbox[3]) + 1),
+            ]
             if instance_mask.ndim == 3:
                 mask_slicing.append(slice(int(pbox[4]) + 1, int(pbox[5])))
+                neighbourhood_slicing.append(slice(int(pbox[4]), int(pbox[5]) + 1))
 
             mask_slicing = tuple(mask_slicing)
+            neighbourhood_slicing = tuple(neighbourhood_slicing)
 
             # check size of lesion candidate
             num_voxels = instance_mask[mask_slicing].size
             if num_voxels <= min_num_voxels:
                 continue
 
-            # if space is 'free' at prediction confidence
-            if np.max(instance_mask[mask_slicing]) == 0:
+            # check if adding lesion candidate would collide with prior (=higher confidence) lesion candidate
+            if np.max(instance_mask[neighbourhood_slicing]) == 0:
                 print(f"Setting box {mask_slicing} to p={pscore}") if verbose >= 2 else None
                 instance_mask[mask_slicing] = pscore
             else:

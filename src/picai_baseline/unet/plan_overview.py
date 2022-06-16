@@ -13,11 +13,11 @@
 #  limitations under the License.
 
 import json
+from pathlib import Path
+
 import numpy as np
 import SimpleITK as sitk
-from pathlib import Path
 from picai_baseline.splits.picai_nnunet import nnunet_splits
-
 
 # specify paths to preprocessed data in nnU-Net Raw Data Archive
 preprocessed_data_path = Path('/workdir/nnUNet_raw_data/Task2201_picai_baseline/')
@@ -31,6 +31,7 @@ for fold, nnunet_fold in enumerate(nnunet_splits):
 
     # iterate over train and validation splits
     for split, nnunet_split in nnunet_fold.items():
+        print(f"Preparing fold {fold}..")
 
         # initialize list of fields to collect for each split of each fold
         overview = {
@@ -45,12 +46,6 @@ for fold, nnunet_fold in enumerate(nnunet_splits):
         # iterate over each training/validation case
         for subject_id in nnunet_split:
             patient_id, study_id = subject_id.split('_')
-
-            if study_id in ["1000409"]:
-                # this case was accidentally not included in the initial release.
-                # please see https://grand-challenge.org/forums/forum/pi-cai-607/topic/imaging-data-missing-649/
-                # for more info
-                continue
 
             # load annotation
             lbl = sitk.GetArrayFromImage(sitk.ReadImage(str(preprocessed_data_path / 'labelsTr' / f'{subject_id}.nii.gz')))
@@ -69,3 +64,5 @@ for fold, nnunet_fold in enumerate(nnunet_splits):
         # save overview
         with open(overviews_path / f'PI-CAI_{split}-fold-{fold}.json', 'w') as fp:
             json.dump(overview, fp, indent=4)
+
+print("Finished.")
