@@ -49,23 +49,23 @@ Running the first fold will start with preprocessing the raw images. After prepr
 Note: the provided baseline uses Cross-Entropy + Focal loss (`nnUNetTrainerV2_Loss_FL_and_CE_checkpoints` trainer), as defined in the [`picai_nnunet`](src/picai_baseline/nnunet/training_docker) Docker. You can also use the `nnUNetTrainerV2_Loss_CE` trainer for Cross-Entropy loss, which is available with the official nnU-Net installation.
 
 ```bash
-docker run --cpus=8 --memory=28gb --gpus='"device=1"' --rm \
+docker run --cpus=8 --memory=64gb --shm-size=64gb --gpus='"device=0"' --rm \
     -v /data/fast/joeran/picai/workdir:/workdir/ \
     joeranbosma/picai_nnunet:latest nnunet plan_train \
     Task2201_picai_baseline /workdir/ \
-    --trainer nnUNetTrainerV2_Loss_FL_and_CE_checkpoints --fold 1 \
+    --trainer nnUNetTrainerV2_Loss_FL_and_CE_checkpoints --fold 0 \
     --custom_split /workdir/nnUNet_raw_data/Task2201_picai_baseline/splits.json
 ```
 
 After preprocessing is done, the other folds can be run sequentially or in parallel with the first fold (change to `--fold 1`, etc.)
 
-Note: runs in our environment with 28 GB RAM, 8 CPUs, 1 GPU with 8 GB VRAM. Takes about 3 days per fold on an RTX 2080 Ti.
+Note: runs in our environment with 28 GB RAM, 8 CPUs, 1 GPU with 8 GB VRAM. Takes about 2-3 days per fold on an RTX 2080 Ti.
 
 
 ### nnU-Net - Inference
 After training nnU-Net to convergence (i.e., after 1000 epochs), we can perform inference using nnUNet's 'best' model, `model_best`, or the final checkpoint, `model_final`. We can use a single model for cross-validation, or ensemble the models for the test set.
 
-To ensemble models (for the test set):
+To evaluate individual models for cross-validation:
 
 ```bash
 docker run --cpus=8 --memory=28gb --gpus='"device=0"' --rm \
@@ -74,26 +74,10 @@ docker run --cpus=8 --memory=28gb --gpus='"device=0"' --rm \
     -v /path/to/workdir/predictions:/output/predictions \
     joeranbosma/picai_nnunet:latest nnunet predict Task2201_picai_baseline \
     --trainer nnUNetTrainerV2_Loss_FL_and_CE_checkpoints \
-    --fold 0,1,2,3,4 --checkpoint model_best \
-    --results /workdir/results \
-    --input /input/images/ \
-    --output /output/predictions \
-    --store_probability_maps
-```
-
-To evaluate individual models for cross-validation:
-
-```bash
-docker run --cpus=8 --memory=28gb --gpus='"device=0"' --rm \
-    -v /path/to/validation_set/fold_0/images:/input/images \
-    -v /path/to/workdir/results:/workdir/results \
-    -v /path/to/workdir/predictions_fold_0:/output/predictions_fold_0 \
-    joeranbosma/picai_nnunet:latest nnunet predict Task2201_picai_baseline \
-    --trainer nnUNetTrainerV2_Loss_FL_and_CE_checkpoints \
     --fold 0 --checkpoint model_best \
     --results /workdir/results \
     --input /input/images/ \
-    --output /output/predictions_fold_0 \
+    --output /output/predictions \
     --store_probability_maps
 ```
 
