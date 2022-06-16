@@ -58,11 +58,6 @@ RUN SITE_PKG=`pip3 show nnunet | grep "Location:" | awk '{print $2}'` && \
             -e "s|shutil.copy(|shutil_sol.copyfile(|g" \
             -e "s|shutil.copytree(|shutil_sol.copytree(|g" {} +
 
-# Install PI-CAI repositories
-RUN pip3 install \
-    git+https://github.com/DIAGNijmegen/picai_eval \
-    git+https://github.com/DIAGNijmegen/picai_prep
-
 # Copy utility scripts
 COPY ./nndet_generate_detection_maps.py /opt/code/nndet_generate_detection_maps.py
 
