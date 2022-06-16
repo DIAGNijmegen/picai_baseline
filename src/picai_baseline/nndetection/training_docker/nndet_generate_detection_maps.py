@@ -33,6 +33,11 @@ def boxes2det(in_dir_pred, out_dir_det, target_label=None, threshold=0.0, min_nu
         """)
 
     case_ids = [p.stem.rsplit('_', 1)[0] for p in in_dir_pred.glob("*_boxes.pkl")]
+    if not case_ids:
+        raise ValueError("No boxes found in input directory")
+    else:
+        print(f"Found {len(case_ids)} cases") if verbose else None
+
     y_det = {}
     prediction_meta = {}
     for cid in maybe_verbose_iterable(case_ids):
