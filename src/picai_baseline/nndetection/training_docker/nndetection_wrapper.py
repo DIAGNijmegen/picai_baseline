@@ -256,10 +256,9 @@ def nndet_predict(argv):
     task_model_dir = Path(os.environ['det_models'])
     training_dir = get_training_dir(task_model_dir / args.task / args.model, args.fold)
     initial_pred_dir = training_dir / "test_predictions"
-    if os.path.exists(initial_pred_dir) and len(os.listdir(initial_pred_dir)):
-        # predictions exist at temporary prediction directory
-        if not args.resume:
-            raise ValueError("Intermediate prediction folder is not empty. Use --resume to allow resuming inference.")
+    if initial_pred_dir.exists() and os.listdir(initial_pred_dir) and not args.resume:
+        # predictions exist at temporary prediction directory, but resuming is not enabled
+        raise ValueError("Intermediate prediction folder is not empty. Use --resume to allow resuming inference.")
 
     print("[#] Copying dataset.json and raw cases to local compute node for inference")
     # copy dataset.json

@@ -84,6 +84,21 @@ docker run --cpus=8 --memory=32gb --shm-size=32gb --gpus='"device=0"' -it --rm \
 
 This will generate an inference plan for model deployment. Additionally, this will generate cross-validation predictions of bounding boxes, which can be used for internal model development. See [nnDetection - Evaluation](#nndetection---evaluation) for instruction on how to evaluate these predictions in the context of the PI-CAI Challenge.
 
+To predict unseen images with the consolidated nnDetection models (i.e., cross-validation ensemble) you can use the following command:
+
+```bash
+docker run --cpus=8 --memory=32gb --shm-size=32gb --gpus='"device=0"' -it --rm \
+    -v /path/to/workdir:/workdir \
+    joeranbosma/picai_nndetection:latest nndet predict Task2201_picai_baseline RetinaUNetV001_D3V001_3d /workdir \
+    --fold -1 --check --resume --input /path/to/images --output /workdir/predictions/ --results /workdir/results/nnDet
+```
+
+
+docker run --cpus=8 --memory=32gb --shm-size=32gb --gpus='"device=4"' -it --rm \
+    -v /data/fast/joeran/picai/workdir:/workdir \
+    joeranbosma/picai_nndetection:latest nndet predict Task2201_picai_baseline RetinaUNetV001_D3V001_3d /workdir \
+    --fold -1 --check --resume --input /workdir/nnUNet_raw_data/Task2201_picai_baseline/imagesTr/ --output /workdir/tmp-predictions/ --results /workdir/results/nnDet
+
 
 ### nnDetection - Evaluation 🏗
 For cross-validation with predictions from [`nndet consolidate`](#nndetection---inference), generate detection maps for each fold. We provide a simple script for this, which transforms bounding boxes into cubes with the corresponding lesion confidence. All bounding boxes that overlap with another bounding box of higher confidence are discarded, to conform with the non-touching lesion candidates required by the PI-CAI Challenge.
@@ -116,7 +131,21 @@ The metrics will be displayed in the command line and stored to `metrics.json` (
 
 
 ### nnDetection - Algorithm Submission 🏗
-_Under construction._
+<!-- 
+# gather resources for inference deployment 🏗
+"""bash
+mkdir -p /data/fast/joeran/repos/picai_nndetection_gc_algorithm/results/nnDet/Task2201_picai_baseline/RetinaUNetV001_D3V001_3d/consolidated
+cp /data/fast/joeran/picai/workdir/results/nnDet/Task2201_picai_baseline/RetinaUNetV001_D3V001_3d/consolidated/config.yaml /data/fast/joeran/repos/picai_nndetection_gc_algorithm/results/nnDet/Task2201_picai_baseline/RetinaUNetV001_D3V001_3d/consolidated/config.yaml
+cp /data/fast/joeran/picai/workdir/results/nnDet/Task2201_picai_baseline/RetinaUNetV001_D3V001_3d/consolidated/model_fold0.ckpt /data/fast/joeran/repos/picai_nndetection_gc_algorithm/results/nnDet/Task2201_picai_baseline/RetinaUNetV001_D3V001_3d/consolidated/model_fold0.ckpt
+cp /data/fast/joeran/picai/workdir/results/nnDet/Task2201_picai_baseline/RetinaUNetV001_D3V001_3d/consolidated/model_fold1.ckpt /data/fast/joeran/repos/picai_nndetection_gc_algorithm/results/nnDet/Task2201_picai_baseline/RetinaUNetV001_D3V001_3d/consolidated/model_fold1.ckpt
+cp /data/fast/joeran/picai/workdir/results/nnDet/Task2201_picai_baseline/RetinaUNetV001_D3V001_3d/consolidated/model_fold2.ckpt /data/fast/joeran/repos/picai_nndetection_gc_algorithm/results/nnDet/Task2201_picai_baseline/RetinaUNetV001_D3V001_3d/consolidated/model_fold2.ckpt
+cp /data/fast/joeran/picai/workdir/results/nnDet/Task2201_picai_baseline/RetinaUNetV001_D3V001_3d/consolidated/model_fold3.ckpt/data/fast/joeran/repos/picai_nndetection_gc_algorithm/results/nnDet/Task2201_picai_baseline/RetinaUNetV001_D3V001_3d/consolidated/model_fold3.ckpt
+cp /data/fast/joeran/picai/workdir/results/nnDet/Task2201_picai_baseline/RetinaUNetV001_D3V001_3d/consolidated/model_fold4.ckpt /data/fast/joeran/repos/picai_nndetection_gc_algorithm/results/nnDet/Task2201_picai_baseline/RetinaUNetV001_D3V001_3d/consolidated/model_fold4.ckpt
+cp /data/fast/joeran/picai/workdir/results/nnDet/Task2201_picai_baseline/RetinaUNetV001_D3V001_3d/consolidated/plan.pkl /data/fast/joeran/repos/picai_nndetection_gc_algorithm/results/nnDet/Task2201_picai_baseline/RetinaUNetV001_D3V001_3d/consolidated/plan.pkl
+cp /data/fast/joeran/picai/workdir/nnDet_raw_data/Task2201_picai_baseline/dataset.json /data/fast/joeran/repos/picai_nndetection_gc_algorithm/results/nnDet/Task2201_picai_baseline/dataset.json
+cp /data/fast/joeran/picai/workdir/nnDet_raw_data/Task2201_picai_baseline/dataset.json /data/fast/joeran/repos/picai_nndetection_gc_algorithm/results/nnDet/Task2201_picai_baseline/dataset.json
+""" -->
+
 
 
 ## References
