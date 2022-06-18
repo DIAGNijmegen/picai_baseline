@@ -13,7 +13,7 @@
 #  limitations under the License.
 
 import argparse
-
+import ast
 import numpy as np
 import torch
 from picai_baseline.unet.training_setup.augmentations.nnUNet_DA import \
@@ -55,17 +55,21 @@ def main():
     prsr.add_argument('--enable_da',        type=int,   default=1,                help="Enable Data Augmentation")
 
     # neural network-specific hyperparameters
-    prsr.add_argument('--model_type',       type=str, default='unet',                                                   help="Neural Network: Architectures")
-    prsr.add_argument('--model_strides',    type=str, default='[(2, 2, 2), (1, 2, 2), (1, 2, 2), (1, 2, 2), (2, 2, 2)]' help="Neural Network: Convolutional Strides (as String Representation)")
-    prsr.add_argument('--model_features',   type=str, default='[32, 64, 128, 256, 512, 1024]'                           help="Neural Network: Number of Encoder Channels (as String Representation)")
-    prsr.add_argument('--batch_size',       type=int, default=8                                                         help="Mini-Batch Size")
-    prsr.add_argument('--use_def_model_hp', type=int, default=1,                                                        help="Use Default Set of Model-Specific Hyperparameters")
+    prsr.add_argument('--model_type',       type=str, default='unet',                                                    help="Neural Network: Architectures")
+    prsr.add_argument('--model_strides',    type=str, default='[(2, 2, 2), (1, 2, 2), (1, 2, 2), (1, 2, 2), (2, 2, 2)]', help="Neural Network: Convolutional Strides (as String Representation)")
+    prsr.add_argument('--model_features',   type=str, default='[32, 64, 128, 256, 512, 1024]',                           help="Neural Network: Number of Encoder Channels (as String Representation)")
+    prsr.add_argument('--batch_size',       type=int, default=8,                                                         help="Mini-Batch Size")
+    prsr.add_argument('--use_def_model_hp', type=int, default=1,                                                         help="Use Default Set of Model-Specific Hyperparameters")
 
     args, _ = prsr.parse_known_args()
+    args.image_shape = ast.literal_eval(args.image_shape)
 
-    # retrieve default hyperparam (architecture, batch size) for given neural network
+    # retrieve default set of hyperparam (architecture, batch size) for given neural network
     if bool(args.use_def_model_hp):
         args = get_default_hyperparams(args)
+    else:
+        args.model_strides = ast.literal_eval(args.model_strides)
+        args.model_features = ast.literal_eval(args.model_features)
 
     # for each fold
     for f in args.folds:
