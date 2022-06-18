@@ -177,7 +177,7 @@ def validate_model(model, optimizer, valid_gen, args, tracking_metrics, device, 
             np.mean([
                 gaussian_filter(x, sigma=1.5)
                 for x in preds
-            ], axis=0)[0]
+            ], axis=0)
         ]
         all_valid_labels += [valid_labels.numpy()[:, 0, ...]]
 
