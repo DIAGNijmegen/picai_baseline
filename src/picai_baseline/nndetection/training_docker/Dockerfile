@@ -34,8 +34,7 @@ RUN pip3 install \
     rm -rf ~/.cache/pip
 
 # Create folders
-RUN mkdir -p ${det_data} \
-    && mkdir -p /opt/code/nndet
+RUN mkdir -p ${det_data}
 
 # Install mibaumgartner code
 COPY ./requirements.txt .
@@ -45,6 +44,9 @@ RUN pip3 install -r requirements.txt  \
 
 # Install nnDetection
 RUN git clone https://github.com/MIC-DKFZ/nnDetection /opt/code/nnDetection
+COPY ./consolidate.py /opt/code/nnDetection/scripts/consolidate.py
+COPY ./predict.py /opt/code/nnDetection/scripts/predict.py
+COPY ./utils.py /opt/code/nnDetection/scripts/utils.py
 RUN FORCE_CUDA=1 pip3 install -v -e /opt/code/nnDetection
 
 # Patch shutil copy operations that don't work on SOL

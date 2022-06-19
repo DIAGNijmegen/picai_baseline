@@ -6,9 +6,9 @@
 
 This repository contains utilities to set up and train deep learning-based detection models for clinically significant prostate cancer (csPCa) in MRI. In turn, these models serve as the official baseline AI solutions for the [PI-CAI challenge](https://pi-cai.grand-challenge.org/). As of now, the following three models will be provided and supported:
 
-- [U-Net](#u-net)
-- [nnU-Net](#nnu-net)
-- [nnDetection](#nndetection)
+- [U-Net](unet_baseline.md)
+- [nnU-Net](nnunet_baseline.md)
+- [nnDetection](nndetection_baseline.md)
 
 All three solutions share the same starting point, with respect to their expected [folder structure](#folder-structure) and [data preparation](#data-preparation) pipeline.
 
@@ -96,10 +96,16 @@ for fold, ds_config in valid_splits.items():
     print(f"Validation fold {fold} has cases: {ds_config['subject_list']}")
 ```
 
-Additionally, we prepared 5-fold cross-validation splits of all cases with an [expert-derived csPCa annotation](https://github.com/DIAGNijmegen/picai_labels/tree/main/csPCa_lesion_delineations/human_expert). These splits are subsets of the splits above. You can load, modify or store these splits as follows:
+Additionally, we prepared 5-fold cross-validation splits of all cases with an [expert-derived csPCa annotation](https://github.com/DIAGNijmegen/picai_labels/tree/main/csPCa_lesion_delineations/human_expert). These splits are subsets of the splits above. You can load these splits as follows:
 
 ```python
 from picai_baseline.splits.picai_nnunet import train_splits, valid_splits
+```
+
+When using `picai_eval` from the command line, we recommend saving the splits to disk. Then, you can pass these to `picai_eval` to ensure all cases were found. You can export the labelled cross-validation splits using:
+
+```bash
+python -m picai_baseline.splits.picai_nnunet --output "/workdir/splits/picai_nnunet"
 ```
 
 
