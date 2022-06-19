@@ -94,12 +94,6 @@ docker run --cpus=8 --memory=32gb --shm-size=32gb --gpus='"device=0"' -it --rm \
 ```
 
 
-docker run --cpus=8 --memory=32gb --shm-size=32gb --gpus='"device=4"' -it --rm \
-    -v /data/fast/joeran/picai/workdir:/workdir \
-    joeranbosma/picai_nndetection:latest nndet predict Task2201_picai_baseline RetinaUNetV001_D3V001_3d /workdir \
-    --fold -1 --check --resume --input /workdir/nnUNet_raw_data/Task2201_picai_baseline/imagesTr/ --output /workdir/tmp-predictions/ --results /workdir/results/nnDet
-
-
 ### nnDetection - Evaluation 🏗
 For cross-validation with predictions from [`nndet consolidate`](#nndetection---inference), generate detection maps for each fold. We provide a simple script for this, which transforms bounding boxes into cubes with the corresponding lesion confidence. All bounding boxes that overlap with another bounding box of higher confidence are discarded, to conform with the non-touching lesion candidates required by the PI-CAI Challenge.
 
