@@ -69,7 +69,7 @@ After preprocessing is done, the other folds can be run sequentially or in paral
 Note: runs in our environment with 32 GB RAM, 8 CPUs, 1 GPU with 8 GB VRAM. Takes about 1 day per fold on a RTX 2080 Ti.
 
 
-### nnDetection - Inference 🏗
+### nnDetection - Inference
 Before inference with nnDetection, consolidate the models first. See [nnDetection's documentation](https://github.com/MIC-DKFZ/nnDetection/#inference) for details. With the `picai_nndet` Docker container, models can be consolidated using the following command:
 
 ```bash
@@ -89,12 +89,13 @@ To predict unseen images with the consolidated nnDetection models (i.e., cross-v
 ```bash
 docker run --cpus=8 --memory=32gb --shm-size=32gb --gpus='"device=0"' -it --rm \
     -v /path/to/workdir:/workdir \
+    -v /path/to/images:/input/images \
     joeranbosma/picai_nndetection:latest nndet predict Task2201_picai_baseline RetinaUNetV001_D3V001_3d /workdir \
-    --fold -1 --check --resume --input /path/to/images --output /workdir/predictions/ --results /workdir/results/nnDet
+    --fold -1 --check --resume --input /input/images --output /workdir/predictions/ --results /workdir/results/nnDet
 ```
 
 
-### nnDetection - Evaluation 🏗
+### nnDetection - Evaluation
 For cross-validation with predictions from [`nndet consolidate`](#nndetection---inference), generate detection maps for each fold. We provide a simple script for this, which transforms bounding boxes into cubes with the corresponding lesion confidence. All bounding boxes that overlap with another bounding box of higher confidence are discarded, to conform with the non-touching lesion candidates required by the PI-CAI Challenge.
 
 Note: this is by no means the best strategy to transform bounding boxes to detection maps. We leave it to participants to improve on this translation step, e.g. by using spheres instead of cubes.
@@ -124,10 +125,32 @@ docker run --cpus=4 --memory=32gb --rm -v /path/to/workdir:/workdir/ joeranbosma
 The metrics will be displayed in the command line and stored to `metrics.json` (inside the `--input` directory). To load the metrics for subsequent analysis, we recommend loading the metrics using `picai_eval`, this allows on-the-fly calculation of metrics (described in more detail [here](https://github.com/DIAGNijmegen/picai_eval#accessing-metrics-after-evaluation)).
 
 
-### nnDetection - Algorithm Submission 🏗
-<!-- 
-# gather resources for inference deployment 🏗
-"""bash
+### nnDetection - Algorithm Submission
+Once training is complete, you are ready to make an algorithm submission. Please read about [Submission of Inference Containers to the Open Development Phase](https://pi-cai.grand-challenge.org/ai-algorithm-submissions/) first. The grand-challenge algorithm submission template for this algorithm can be found [here](https://github.com/DIAGNijmegen/picai_nndetection_gc_algorithm).
+
+To deploy your own nnDetection algorithm, the trained models need to be transferred. Inference with nnDetection requires the following files (for the task name and trainer specified above):
+
+```bash
+~/workdir/results/nnDet/Task2201_picai_baseline/RetinaUNetV001_D3V001_3d/consolidated
+├── config.yaml
+├── model_fold0.ckpt
+├── model_fold1.ckpt
+├── model_fold2.ckpt
+├── model_fold3.ckpt
+├── model_fold4.ckpt
+└── plan_inference.pkl
+```
+
+As well as:
+
+```bash
+~/workdir/nnDet_raw_data/Task2201_picai_baseline/dataset.json
+```
+
+
+These files can be collected through the command-line as follows:
+
+```bash
 mkdir -p /path/to/repos/picai_nndetection_gc_algorithm/results/nnDet/Task2201_picai_baseline/RetinaUNetV001_D3V001_3d/consolidated
 cp /path/to/workdir/results/nnDet/Task2201_picai_baseline/RetinaUNetV001_D3V001_3d/consolidated/config.yaml /path/to/repos/picai_nndetection_gc_algorithm/results/nnDet/Task2201_picai_baseline/RetinaUNetV001_D3V001_3d/consolidated/config.yaml
 cp /path/to/workdir/results/nnDet/Task2201_picai_baseline/RetinaUNetV001_D3V001_3d/consolidated/model_fold0.ckpt /path/to/repos/picai_nndetection_gc_algorithm/results/nnDet/Task2201_picai_baseline/RetinaUNetV001_D3V001_3d/consolidated/model_fold0.ckpt
@@ -137,8 +160,9 @@ cp /path/to/workdir/results/nnDet/Task2201_picai_baseline/RetinaUNetV001_D3V001_
 cp /path/to/workdir/results/nnDet/Task2201_picai_baseline/RetinaUNetV001_D3V001_3d/consolidated/model_fold4.ckpt /path/to/repos/picai_nndetection_gc_algorithm/results/nnDet/Task2201_picai_baseline/RetinaUNetV001_D3V001_3d/consolidated/model_fold4.ckpt
 cp /path/to/workdir/results/nnDet/Task2201_picai_baseline/RetinaUNetV001_D3V001_3d/consolidated/plan_inference.pkl /path/to/repos/picai_nndetection_gc_algorithm/results/nnDet/Task2201_picai_baseline/RetinaUNetV001_D3V001_3d/consolidated/plan_inference.pkl
 cp /path/to/workdir/nnDet_raw_data/Task2201_picai_baseline/dataset.json /path/to/repos/picai_nndetection_gc_algorithm/results/nnDet/Task2201_picai_baseline/dataset.json
-""" -->
+```
 
+After collecting these files, please continue with the instructions provided in [Submission of Inference Containers to the Open Development Phase](https://pi-cai.grand-challenge.org/ai-algorithm-submissions/).
 
 
 ## References

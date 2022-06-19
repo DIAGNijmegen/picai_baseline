@@ -50,10 +50,10 @@ Note: the provided baseline uses Cross-Entropy + Focal loss (`nnUNetTrainerV2_Lo
 
 ```bash
 docker run --cpus=8 --memory=64gb --shm-size=64gb --gpus='"device=0"' --rm -v /path/to/workdir:/workdir/ joeranbosma/picai_nnunet:latest nnunet plan_train Task2203_picai_baseline /workdir/ --trainer nnUNetTrainerV2_Loss_FL_and_CE_checkpoints --fold 0 --custom_split /workdir/nnUNet_raw_data/Task2203_picai_baseline/splits.json
-docker run --cpus=8 --memory=32gb --shm-size=32gb --gpus='"device=1"' --rm -v /path/to/workdir:/workdir/ joeranbosma/picai_nnunet:latest nnunet plan_train Task2203_picai_baseline /workdir/ --trainer nnUNetTrainerV2_Loss_FL_and_CE_checkpoints --fold 1 --custom_split /workdir/nnUNet_raw_data/Task2203_picai_baseline/splits.json
-docker run --cpus=8 --memory=32gb --shm-size=32gb --gpus='"device=2"' --rm -v /path/to/workdir:/workdir/ joeranbosma/picai_nnunet:latest nnunet plan_train Task2203_picai_baseline /workdir/ --trainer nnUNetTrainerV2_Loss_FL_and_CE_checkpoints --fold 2 --custom_split /workdir/nnUNet_raw_data/Task2203_picai_baseline/splits.json
-docker run --cpus=8 --memory=32gb --shm-size=32gb --gpus='"device=3"' --rm -v /path/to/workdir:/workdir/ joeranbosma/picai_nnunet:latest nnunet plan_train Task2203_picai_baseline /workdir/ --trainer nnUNetTrainerV2_Loss_FL_and_CE_checkpoints --fold 3 --custom_split /workdir/nnUNet_raw_data/Task2203_picai_baseline/splits.json
-docker run --cpus=8 --memory=32gb --shm-size=32gb --gpus='"device=4"' --rm -v /path/to/workdir:/workdir/ joeranbosma/picai_nnunet:latest nnunet plan_train Task2203_picai_baseline /workdir/ --trainer nnUNetTrainerV2_Loss_FL_and_CE_checkpoints --fold 4 --custom_split /workdir/nnUNet_raw_data/Task2203_picai_baseline/splits.json
+docker run --cpus=8 --memory=40gb --shm-size=40gb --gpus='"device=1"' --rm -v /path/to/workdir:/workdir/ joeranbosma/picai_nnunet:latest nnunet plan_train Task2203_picai_baseline /workdir/ --trainer nnUNetTrainerV2_Loss_FL_and_CE_checkpoints --fold 1 --custom_split /workdir/nnUNet_raw_data/Task2203_picai_baseline/splits.json
+docker run --cpus=8 --memory=40gb --shm-size=40gb --gpus='"device=2"' --rm -v /path/to/workdir:/workdir/ joeranbosma/picai_nnunet:latest nnunet plan_train Task2203_picai_baseline /workdir/ --trainer nnUNetTrainerV2_Loss_FL_and_CE_checkpoints --fold 2 --custom_split /workdir/nnUNet_raw_data/Task2203_picai_baseline/splits.json
+docker run --cpus=8 --memory=40gb --shm-size=40gb --gpus='"device=3"' --rm -v /path/to/workdir:/workdir/ joeranbosma/picai_nnunet:latest nnunet plan_train Task2203_picai_baseline /workdir/ --trainer nnUNetTrainerV2_Loss_FL_and_CE_checkpoints --fold 3 --custom_split /workdir/nnUNet_raw_data/Task2203_picai_baseline/splits.json
+docker run --cpus=8 --memory=40gb --shm-size=40gb --gpus='"device=4"' --rm -v /path/to/workdir:/workdir/ joeranbosma/picai_nnunet:latest nnunet plan_train Task2203_picai_baseline /workdir/ --trainer nnUNetTrainerV2_Loss_FL_and_CE_checkpoints --fold 4 --custom_split /workdir/nnUNet_raw_data/Task2203_picai_baseline/splits.json
 
 ```
 
@@ -115,9 +115,9 @@ print(f"PI-CAI ranking score: {metrics.score:.4f} " +
 ```
 
 ### nnU-Net - Algorithm Submission to Grand Challenge
-Once training is complete, you are ready to make an algorithm submission. Please read about [Submission of Inference Containers to the Open Development Phase](https://pi-cai.grand-challenge.org/ai-algorithm-submissions/) first.
+Once training is complete, you are ready to make an algorithm submission. Please read about [Submission of Inference Containers to the Open Development Phase](https://pi-cai.grand-challenge.org/ai-algorithm-submissions/) first. The grand-challenge algorithm submission template for this algorithm can be found [here](https://github.com/DIAGNijmegen/picai_nnunet_gc_algorithm).
 
-To deploy nnU-Net algorithms, the trained models need to be transferred. Inference with nnU-Net requires the following files (for the task name and trainer specified above):
+To deploy your own nnU-Net algorithm, the trained models need to be transferred. Inference with nnU-Net requires the following files (for the task name and trainer specified above):
 
 ```bash
 ~/results/nnUNet/3d_fullres/Task2201_picai_baseline/nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1
