@@ -43,7 +43,7 @@ def resume_or_restart_training(model, optimizer, device, args, fold_id):
         tracking_metrics = {}
         if os.path.isfile(metrics_file):
 
-            saved_metrics = pd.read_excel(metrics_file)
+            saved_metrics = pd.read_excel(metrics_file, engine='openpyxl')
             all_epochs = (saved_metrics['epoch'].values).tolist()
             all_valid_metrics_auroc = (saved_metrics['valid_auroc'].values).tolist()
             all_valid_metrics_ap = (saved_metrics['valid_ap'].values).tolist()
@@ -163,9 +163,22 @@ def validate_model(model, optimizer, valid_gen, args, tracking_metrics, device, 
         # aggregate all validation predictions
         # gaussian blur to counteract checkerboard artifacts in
         # predictions from the use of transposed conv. in the U-Net
-        all_valid_preds += [np.mean([gaussian_filter(torch.sigmoid(
-            model(x))[:, 1, ...].cpu().detach().numpy(),
-            sigma=1.5) for x in valid_images], axis=0)]
+        preds = [
+            torch.sigmoid(model(x))[:, 1, ...].detach().cpu().numpy()
+            for x in valid_images
+        ]
+
+        # revert horizontally flipped tta image
+        preds[1] = np.flip(preds[1], [3])
+
+        # gaussian blur to counteract checkerboard artifacts in
+        # predictions from the use of transposed conv. in the U-Net
+        all_valid_preds += [
+            np.mean([
+                gaussian_filter(x, sigma=1.5)
+                for x in preds
+            ], axis=0)
+        ]
         all_valid_labels += [valid_labels.numpy()[:, 0, ...]]
 
     # track validation metrics

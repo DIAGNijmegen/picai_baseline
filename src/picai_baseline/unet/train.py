@@ -13,7 +13,7 @@
 #  limitations under the License.
 
 import argparse
-
+import ast
 import numpy as np
 import torch
 from picai_baseline.unet.training_setup.augmentations.nnUNet_DA import \
@@ -36,34 +36,40 @@ def main():
     prsr = argparse.ArgumentParser(description='Command Line Arguments for Training Script')
 
     # data I/0 + experimental setup
-    prsr.add_argument('--max_threads',        type=int, default=12, help="Max Threads/Workers for Data Loaders")
-    prsr.add_argument('--validate_n_epochs',  type=int, default=10, help="Trigger Validation Every N Epochs")
-    prsr.add_argument('--validate_min_epoch', type=int, default=50, help="Trigger Validation After Minimum N Epochs")
-    prsr.add_argument('--export_best_model',  type=int, default=1,  help="Export Model Checkpoints")
-    prsr.add_argument('--resume_training',    type=str, default=1,  help="Resume Training Model, If Checkpoint Exists")
-    prsr.add_argument('--weights_dir',        type=str, required=True, help="Path to Export Model Checkpoints")
-    prsr.add_argument('--overviews_dir',      type=str, required=True, help="Base Path to Training/Validation Data Sheets")
+    prsr.add_argument('--max_threads',        type=int, default=12,               help="Max Threads/Workers for Data Loaders")
+    prsr.add_argument('--validate_n_epochs',  type=int, default=10,               help="Trigger Validation Every N Epochs")
+    prsr.add_argument('--validate_min_epoch', type=int, default=50,               help="Trigger Validation After Minimum N Epochs")
+    prsr.add_argument('--export_best_model',  type=int, default=1,                help="Export Model Checkpoints")
+    prsr.add_argument('--resume_training',    type=str, default=1,                help="Resume Training Model, If Checkpoint Exists")
+    prsr.add_argument('--weights_dir',        type=str, required=True,            help="Path to Export Model Checkpoints")
+    prsr.add_argument('--overviews_dir',      type=str, required=True,            help="Base Path to Training/Validation Data Sheets")
     prsr.add_argument('--folds',              type=int, nargs='+', required=True, help="Folds Selected for Training/Validation Run")
 
     # training hyperparameters
-    prsr.add_argument('--image_shape',      type=int,   default=[20, 256, 256], help="Image Shape (Spatial Dimensions)")
-    prsr.add_argument('--num_channels',     type=int,   default=3,              help="Number of Channels/Sequences")
-    prsr.add_argument('--num_classes',      type=int,   default=2,              help="Number of Classes at Train-Time")
-    prsr.add_argument('--num_epochs',       type=int,   default=100,            help="Number of Training Epochs")
-    prsr.add_argument('--base_lr',          type=float, default=0.001,          help="Learning Rate")
-    prsr.add_argument('--focal_loss_gamma', type=float, default=0.0,            help="Focal Loss (Gamma Value)")
-    prsr.add_argument('--enable_da',        type=int,   default=1,              help="Enable Data Augmentation")
+    prsr.add_argument('--image_shape',      type=str,   default='[20, 256, 256]', help="Image Shape (as String Representation)")
+    prsr.add_argument('--num_channels',     type=int,   default=3,                help="Number of Channels/Sequences")
+    prsr.add_argument('--num_classes',      type=int,   default=2,                help="Number of Classes at Train-Time")
+    prsr.add_argument('--num_epochs',       type=int,   default=100,              help="Number of Training Epochs")
+    prsr.add_argument('--base_lr',          type=float, default=0.001,            help="Learning Rate")
+    prsr.add_argument('--focal_loss_gamma', type=float, default=0.0,              help="Focal Loss (Gamma Value)")
+    prsr.add_argument('--enable_da',        type=int,   default=1,                help="Enable Data Augmentation")
 
     # neural network-specific hyperparameters
-    prsr.add_argument('--model_type',     type=str, default='unet',            help="Neural Network: Architectures")
-    prsr.add_argument('--model_strides',  type=int, default=np.nan, nargs='+', help="Neural Network: Convolutional Strides")
-    prsr.add_argument('--model_features', type=int, default=np.nan, nargs='+', help="Neural Network: Number of Encoder Channels")
-    prsr.add_argument('--batch_size',     type=int, default=np.nan,            help="Mini-Batch Size")
+    prsr.add_argument('--model_type',       type=str, default='unet',                                                    help="Neural Network: Architectures")
+    prsr.add_argument('--model_strides',    type=str, default='[(2, 2, 2), (1, 2, 2), (1, 2, 2), (1, 2, 2), (2, 2, 2)]', help="Neural Network: Convolutional Strides (as String Representation)")
+    prsr.add_argument('--model_features',   type=str, default='[32, 64, 128, 256, 512, 1024]',                           help="Neural Network: Number of Encoder Channels (as String Representation)")
+    prsr.add_argument('--batch_size',       type=int, default=8,                                                         help="Mini-Batch Size")
+    prsr.add_argument('--use_def_model_hp', type=int, default=1,                                                         help="Use Default Set of Model-Specific Hyperparameters")
 
     args, _ = prsr.parse_known_args()
+    args.image_shape = ast.literal_eval(args.image_shape)
 
-    # retrieve default hyperparam (architecture, batch size) for given neural network
-    args = get_default_hyperparams(args)
+    # retrieve default set of hyperparam (architecture, batch size) for given neural network
+    if bool(args.use_def_model_hp):
+        args = get_default_hyperparams(args)
+    else:
+        args.model_strides = ast.literal_eval(args.model_strides)
+        args.model_features = ast.literal_eval(args.model_features)
 
     # for each fold
     for f in args.folds:
