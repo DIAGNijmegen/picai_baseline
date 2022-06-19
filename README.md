@@ -1,7 +1,3 @@
-⚠️ **This repository is still under active development.** The 🏗 icon indicates that the section is still under construction.
-
-#
-
 # Baseline AI Models for Prostate Cancer Detection in MRI
 
 This repository contains utilities to set up and train deep learning-based detection models for clinically significant prostate cancer (csPCa) in MRI. In turn, these models serve as the official baseline AI solutions for the [PI-CAI challenge](https://pi-cai.grand-challenge.org/). As of now, the following three models will be provided and supported:
@@ -11,6 +7,9 @@ This repository contains utilities to set up and train deep learning-based detec
 - [nnDetection](nndetection_baseline.md)
 
 All three solutions share the same starting point, with respect to their expected [folder structure](#folder-structure) and [data preparation](#data-preparation) pipeline.
+
+## Issues
+Please feel free to raise any issues you encounter [here](https://github.com/DIAGNijmegen/picai_baseline/issues).
 
 
 ## Installation
