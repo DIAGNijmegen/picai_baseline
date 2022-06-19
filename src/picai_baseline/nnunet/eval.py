@@ -21,12 +21,13 @@ results_dir = Path("/workdir/results/nnUNet/3d_fullres/")
 for fold in range(5):
     print(f"Fold {fold}")
     if fold == 0:
-        epochs = list(range(50, 950+1, 50)) + ["model_best", "model_final_checkpoint"]
+        checkpoints = ["model_best", "model_final_checkpoint"] + [
+            f"model_ep_{epoch:03d}" for epoch in range(50, 950+1, 50)
+        ]
     else:
-        epochs = ["model_best"]
+        checkpoints = ["model_best"]
 
-    for epoch in epochs:
-        checkpoint = f"model_ep_{epoch:03d}"
+    for checkpoint in checkpoints:
         softmax_dir = results_dir / task / trainer / f"fold_{fold}/picai_pubtrain_predictions_{checkpoint}"
         metrics_path = softmax_dir / "metrics.json"
 
