@@ -13,15 +13,15 @@
 #  limitations under the License.
 
 import os
-import torch
-import pandas as pd
-import numpy as np
 import time
-from scipy.ndimage import gaussian_filter
 
+import numpy as np
+import pandas as pd
+import torch
 from picai_baseline.unet.training_setup.poly_lr import poly_lr
 from picai_eval import evaluate
 from report_guided_annotation import extract_lesion_candidates
+from scipy.ndimage import gaussian_filter
 
 
 def resume_or_restart_training(model, optimizer, device, args, fold_id):
@@ -51,7 +51,7 @@ def resume_or_restart_training(model, optimizer, device, args, fold_id):
 
             tracking_metrics = {
                 'fold_id':                   fold_id,
-                'start_epoch':               checkpoint['epoch'],
+                'start_epoch':               checkpoint['epoch'] + 1,  # resume at next epoch
                 'all_epochs':                all_epochs,
                 'all_train_loss':           (saved_metrics['train_loss'].values).tolist(),
                 'all_valid_metrics_auroc':   all_valid_metrics_auroc,
