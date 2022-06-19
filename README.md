@@ -166,6 +166,21 @@ Joeran Bosma, Anindo Saha, Matin Hosseinzadeh, Ilse Slootweg, Maarten de Rooij, 
 Joeran Bosma, Natalia Alves and Henkjan Huisman. "Performant and Reproducible Deep Learning-Based Cancer Detection Models for Medical Imaging". _Under Review_.
 
 
+##
+If you are using this codebase or some part of it, please cite the following article:
+
+● [A. Saha, J. J. Twilt, J. S. Bosma, B. van Ginneken, D. Yakar, M. Elschot, J. Veltman, J. J. Fütterer, M. de Rooij, H. Huisman, "Artificial Intelligence and Radiologists at Prostate Cancer Detection in MRI: The PI-CAI Challenge (Study Protocol)", DOI: 10.5281/zenodo.6667655](https://zenodo.org/record/6667655)
+
+**BibTeX:**
+```
+@ARTICLE{PICAI_BIAS,
+    author = {Anindo Saha, Jasper J. Twilt, Joeran S. Bosma, Bram van Ginneken, Derya Yakar, Mattijs Elschot, Jeroen Veltman, Jurgen Fütterer, Maarten de Rooij, Henkjan Huisman},
+    title  = {{Artificial Intelligence and Radiologists at Prostate Cancer Detection in MRI: The PI-CAI Challenge (Study Protocol)}}, 
+    year   = {2022},
+    doi    = {10.5281/zenodo.6667655}
+}
+```
+
 [picai_nnunet_docker]: https://hub.docker.com/r/joeranbosma/picai_nnunet
 [picai_nndetection_docker]: https://hub.docker.com/r/joeranbosma/picai_nndetection
 [picai_prep]: https://github.com/DIAGNijmegen/picai_prep
