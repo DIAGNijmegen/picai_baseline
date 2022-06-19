@@ -49,15 +49,15 @@ Running the first fold will start with preprocessing the raw images. After prepr
 Note: the provided baseline uses Cross-Entropy + Focal loss (`nnUNetTrainerV2_Loss_FL_and_CE_checkpoints` trainer), as defined in the [`picai_nnunet`](src/picai_baseline/nnunet/training_docker) Docker. You can also use the `nnUNetTrainerV2_Loss_CE` trainer for Cross-Entropy loss, which is available with the official nnU-Net installation.
 
 ```bash
-docker run --cpus=8 --memory=64gb --shm-size=64gb --gpus='"device=0"' --rm \
-    -v /data/fast/joeran/picai/workdir:/workdir/ \
-    joeranbosma/picai_nnunet:latest nnunet plan_train \
-    Task2201_picai_baseline /workdir/ \
-    --trainer nnUNetTrainerV2_Loss_FL_and_CE_checkpoints --fold 0 \
-    --custom_split /workdir/nnUNet_raw_data/Task2201_picai_baseline/splits.json
+docker run --cpus=8 --memory=64gb --shm-size=64gb --gpus='"device=0"' --rm -v /path/to/workdir:/workdir/ joeranbosma/picai_nnunet:latest nnunet plan_train Task2203_picai_baseline /workdir/ --trainer nnUNetTrainerV2_Loss_FL_and_CE_checkpoints --fold 0 --custom_split /workdir/nnUNet_raw_data/Task2203_picai_baseline/splits.json
+docker run --cpus=8 --memory=32gb --shm-size=32gb --gpus='"device=1"' --rm -v /path/to/workdir:/workdir/ joeranbosma/picai_nnunet:latest nnunet plan_train Task2203_picai_baseline /workdir/ --trainer nnUNetTrainerV2_Loss_FL_and_CE_checkpoints --fold 1 --custom_split /workdir/nnUNet_raw_data/Task2203_picai_baseline/splits.json
+docker run --cpus=8 --memory=32gb --shm-size=32gb --gpus='"device=2"' --rm -v /path/to/workdir:/workdir/ joeranbosma/picai_nnunet:latest nnunet plan_train Task2203_picai_baseline /workdir/ --trainer nnUNetTrainerV2_Loss_FL_and_CE_checkpoints --fold 2 --custom_split /workdir/nnUNet_raw_data/Task2203_picai_baseline/splits.json
+docker run --cpus=8 --memory=32gb --shm-size=32gb --gpus='"device=3"' --rm -v /path/to/workdir:/workdir/ joeranbosma/picai_nnunet:latest nnunet plan_train Task2203_picai_baseline /workdir/ --trainer nnUNetTrainerV2_Loss_FL_and_CE_checkpoints --fold 3 --custom_split /workdir/nnUNet_raw_data/Task2203_picai_baseline/splits.json
+docker run --cpus=8 --memory=32gb --shm-size=32gb --gpus='"device=4"' --rm -v /path/to/workdir:/workdir/ joeranbosma/picai_nnunet:latest nnunet plan_train Task2203_picai_baseline /workdir/ --trainer nnUNetTrainerV2_Loss_FL_and_CE_checkpoints --fold 4 --custom_split /workdir/nnUNet_raw_data/Task2203_picai_baseline/splits.json
+
 ```
 
-After preprocessing is done, the other folds can be run sequentially or in parallel with the first fold (change to `--fold 1`, etc.)
+After preprocessing is done, the other folds can be run sequentially or in parallel with the first fold (change the `--gpus` flag accordingly).
 
 Note: runs in our environment with 28 GB RAM, 8 CPUs, 1 GPU with 8 GB VRAM. Takes about 2-3 days per fold on an RTX 2080 Ti.
 
@@ -114,8 +114,40 @@ print(f"PI-CAI ranking score: {metrics.score:.4f} " +
       + f"(50% AUROC={metrics.auroc:.4f} + 50% AP={metrics.AP:.4f})")
 ```
 
-### nnU-Net - Algorithm Submission to Grand Challenge 🏗
-_Under construction._
+### nnU-Net - Algorithm Submission to Grand Challenge
+Once training is complete, you are ready to make an algorithm submission. Please read about [Submission of Inference Containers to the Open Development Phase](https://pi-cai.grand-challenge.org/ai-algorithm-submissions/) first.
+
+To deploy nnU-Net algorithms, the trained models need to be transferred. Inference with nnU-Net requires the following files (for the task name and trainer specified above):
+
+```bash
+~/results/nnUNet/3d_fullres/Task2201_picai_baseline/nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1
+├── fold_0
+│   ├── model_best.model
+│   └── model_best.model.pkl
+├── fold_1/...
+├── fold_2/...
+├── fold_3/...
+├── fold_4/...
+└── plans.pkl
+```
+
+These files can be collected through Python (see [`nnunet_baseline.py`](src/picai_baseline/nnunet/nnunet_baseline.py)), or through the command-line:
+
+```bash
+cp /workdir/results/nnUNet/3d_fullres/Task2201_picai_baseline/nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1/fold_0/model_best.model /data/fast/joeran/repos/picai_nnunet_gc_algorithm/results/nnUNet/3d_fullres/Task2201_picai_baseline/nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1/fold_0/model_best.model && \
+cp /workdir/results/nnUNet/3d_fullres/Task2201_picai_baseline/nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1/fold_0/model_best.model.pkl /data/fast/joeran/repos/picai_nnunet_gc_algorithm/results/nnUNet/3d_fullres/Task2201_picai_baseline/nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1/fold_0/model_best.model.pkl && \
+cp /workdir/results/nnUNet/3d_fullres/Task2201_picai_baseline/nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1/fold_1/model_best.model /data/fast/joeran/repos/picai_nnunet_gc_algorithm/results/nnUNet/3d_fullres/Task2201_picai_baseline/nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1/fold_1/model_best.model && \
+cp /workdir/results/nnUNet/3d_fullres/Task2201_picai_baseline/nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1/fold_1/model_best.model.pkl /data/fast/joeran/repos/picai_nnunet_gc_algorithm/results/nnUNet/3d_fullres/Task2201_picai_baseline/nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1/fold_1/model_best.model.pkl && \
+cp /workdir/results/nnUNet/3d_fullres/Task2201_picai_baseline/nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1/fold_2/model_best.model /data/fast/joeran/repos/picai_nnunet_gc_algorithm/results/nnUNet/3d_fullres/Task2201_picai_baseline/nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1/fold_2/model_best.model && \
+cp /workdir/results/nnUNet/3d_fullres/Task2201_picai_baseline/nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1/fold_2/model_best.model.pkl /data/fast/joeran/repos/picai_nnunet_gc_algorithm/results/nnUNet/3d_fullres/Task2201_picai_baseline/nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1/fold_2/model_best.model.pkl && \
+cp /workdir/results/nnUNet/3d_fullres/Task2201_picai_baseline/nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1/fold_3/model_best.model /data/fast/joeran/repos/picai_nnunet_gc_algorithm/results/nnUNet/3d_fullres/Task2201_picai_baseline/nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1/fold_3/model_best.model && \
+cp /workdir/results/nnUNet/3d_fullres/Task2201_picai_baseline/nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1/fold_3/model_best.model.pkl /data/fast/joeran/repos/picai_nnunet_gc_algorithm/results/nnUNet/3d_fullres/Task2201_picai_baseline/nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1/fold_3/model_best.model.pkl && \
+cp /workdir/results/nnUNet/3d_fullres/Task2201_picai_baseline/nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1/fold_4/model_best.model /data/fast/joeran/repos/picai_nnunet_gc_algorithm/results/nnUNet/3d_fullres/Task2201_picai_baseline/nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1/fold_4/model_best.model && \
+cp /workdir/results/nnUNet/3d_fullres/Task2201_picai_baseline/nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1/fold_4/model_best.model.pkl /data/fast/joeran/repos/picai_nnunet_gc_algorithm/results/nnUNet/3d_fullres/Task2201_picai_baseline/nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1/fold_4/model_best.model.pkl && \
+cp /workdir/results/nnUNet/3d_fullres/Task2201_picai_baseline/nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1/plans.pkl /data/fast/joeran/repos/picai_nnunet_gc_algorithm/results/nnUNet/3d_fullres/Task2201_picai_baseline/nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1/plans.pkl
+```
+
+After collecting these files, please continue with the instructions provided in [Submission of Inference Containers to the Open Development Phase](https://pi-cai.grand-challenge.org/ai-algorithm-submissions/).
 
 
 ## References

@@ -13,6 +13,7 @@
 #  limitations under the License.
 
 import os
+import shutil
 from pathlib import Path
 from subprocess import check_call
 
@@ -43,12 +44,14 @@ trainer = "nnUNetTrainerV2_Loss_FL_and_CE_checkpoints"
 # paths
 mha_archive_dir = inputdir / "images"
 annotations_dir = inputdir / "labels/csPCa_lesion_delineations/human_expert/resampled/"
-mha2nnunet_settings_path = workdir / "mha2nnunet_settings" / "Task2201_picai_baseline.json"
+mha2nnunet_settings_path = workdir / "mha2nnunet_settings" / f"{task}.json"
 nnUNet_raw_data_path = workdir / "nnUNet_raw_data"
 nnUNet_task_dir = nnUNet_raw_data_path / task
 nnUNet_dataset_json_path = nnUNet_task_dir / "dataset.json"
 nnUNet_splits_path = nnUNet_task_dir / "splits.json"
 splits_config_root = Path(__file__).parent / "splits"
+nnUNet_trainer_results = workdir / "results/nnUNet/3d_fullres/" / task / "nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1"
+nnUNet_gc_algorithm_results = workdir / "picai_nnunet_gc_algorithm/results/nnUNet/3d_fullres/" / task / "nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1"
 
 # train nnUNet (first fold will trigger preprocessing as well)
 print("Starting training...")
@@ -120,3 +123,21 @@ for fold in range(5):
         metrics.save(predictions_dir / "metrics-train.json")
         print(f"Evaluation of training performance finished for fold {fold}.")
 
+# gather resources for inference deployment
+for path in [
+    "fold_0/model_best.model",
+    "fold_0/model_best.model.pkl",
+    "fold_1/model_best.model",
+    "fold_1/model_best.model.pkl",
+    "fold_2/model_best.model",
+    "fold_2/model_best.model.pkl",
+    "fold_3/model_best.model",
+    "fold_3/model_best.model.pkl",
+    "fold_4/model_best.model",
+    "fold_4/model_best.model.pkl",
+    "plans.pkl",
+]:
+    shutil.copyfile(
+        nnUNet_trainer_results / path,
+        nnUNet_gc_algorithm_results / path,
+    )
