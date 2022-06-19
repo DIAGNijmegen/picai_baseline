@@ -56,15 +56,15 @@ def main():
 
     # training hyperparameters
     parser.add_argument('--image_shape', type=int, nargs="+", default=[20, 256, 256],   
-                        help="Image shape (z, y, x)")
+                        help="Input image shape (z, y, x)")
     parser.add_argument('--num_channels', type=int, default=3,                
-                        help="Number of channels/sequences")
+                        help="Number of input channels/sequences")
     parser.add_argument('--num_classes', type=int, default=2,                
                         help="Number of classes at train-time")
     parser.add_argument('--num_epochs', type=int, default=100,              
                         help="Number of training epochs")
     parser.add_argument('--base_lr', type=float, default=0.001,            
-                        help="Learning tate")
+                        help="Learning rate")
     parser.add_argument('--focal_loss_gamma', type=float, default=0.0,              
                         help="Focal Loss gamma value")
     parser.add_argument('--enable_da', type=int, default=1,                
