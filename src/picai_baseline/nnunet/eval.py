@@ -46,5 +46,5 @@ for fold in range(5):
 
         # save and show metrics
         metrics.save(metrics_path)
-        print(f"Results for epoch {epoch}:")
+        print(f"Results for checkpoint {checkpoint}:")
         print(metrics)
