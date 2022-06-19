@@ -6,9 +6,9 @@
 
 This repository contains utilities to set up and train deep learning-based detection models for clinically significant prostate cancer (csPCa) in MRI. In turn, these models serve as the official baseline AI solutions for the [PI-CAI challenge](https://pi-cai.grand-challenge.org/). As of now, the following three models will be provided and supported:
 
-- [U-Net](#u-net)
-- [nnU-Net](#nnu-net)
-- [nnDetection](#nndetection)
+- [U-Net](unet_baseline.md)
+- [nnU-Net](nnunet_baseline.md)
+- [nnDetection](nndetection_baseline.md)
 
 All three solutions share the same starting point, with respect to their expected [folder structure](#folder-structure) and [data preparation](#data-preparation) pipeline.
 
