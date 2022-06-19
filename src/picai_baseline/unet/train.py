@@ -17,6 +17,7 @@ import ast
 
 import numpy as np
 import torch
+from monai.networks.nets.swin_unetr import SwinUNETR
 from picai_baseline.unet.training_setup.augmentations.nnUNet_DA import \
     apply_augmentations
 from picai_baseline.unet.training_setup.callbacks import (
@@ -27,9 +28,42 @@ from picai_baseline.unet.training_setup.data_generator import prepare_datagens
 from picai_baseline.unet.training_setup.default_hyperparam import \
     get_default_hyperparams
 from picai_baseline.unet.training_setup.loss_functions.focal import FocalLoss
-from picai_baseline.unet.training_setup.neural_network_selector import \
-    neural_network_for_run
+# from picai_baseline.unet.training_setup.neural_network_selector import \
+#     neural_network_for_run
 from torch.utils.tensorboard import SummaryWriter
+
+
+def neural_network_for_run(args, device):
+    """Select neural network architecture for given run"""
+
+    if args.model_type == 'unet':
+        model = UNet(
+            spatial_dims=len(args.image_shape),
+            in_channels=args.num_channels,
+            out_channels=args.num_classes,
+            strides=args.model_strides,
+            channels=args.model_features
+        )
+    elif args.model_type == "swin_unetr":
+        model = SwinUNETR(
+            img_size=args.image_shape,
+            in_channels=args.num_channels,
+            out_channels=args.num_classes,
+            # depths: Sequence[int] = (2, 2, 2, 2),
+            # num_heads: Sequence[int] = (3, 6, 12, 24),
+            # feature_size: int = 24,
+            # norm_name: Union[Tuple, str] = "instance",
+            # drop_rate: float = 0.0,
+            # attn_drop_rate: float = 0.0,
+            # dropout_path_rate: float = 0.0,
+            # normalize: bool = True,
+            # use_checkpoint: bool = False,
+            # spatial_dims: int = 3,
+        )
+
+    model = model.to(device)
+    print("Loaded Neural Network Arch.:", args.model_type)
+    return model
 
 
 def main():
@@ -71,7 +105,7 @@ def main():
                         help="Enable data augmentation")
 
     # neural network-specific hyperparameters
-    parser.add_argument('--model_type', type=str, default='unet',                                                    
+    parser.add_argument('--model_type', type=str, default='swin_unetr',                                                    
                         help="Neural network: architectures")
     parser.add_argument('--model_strides', type=str, default='[(2, 2, 2), (1, 2, 2), (1, 2, 2), (1, 2, 2), (2, 2, 2)]', 
                         help="Neural network: convolutional strides (as string representation)")
@@ -85,6 +119,7 @@ def main():
     args = parser.parse_args()
     args.model_strides = ast.literal_eval(args.model_strides)
     args.model_features = ast.literal_eval(args.model_features)
+
 
     # retrieve default set of hyperparam (architecture, batch size) for given neural network
     if bool(args.use_def_model_hp):
@@ -160,3 +195,16 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+"""
+With 40 GB of VRAM (A100):
+docker run --cpus=8 --memory=32gb --shm-size=32gb --gpus='"device=7"' -it --rm \
+    -v /data/fast/joeran/picai/workdir:/workdir/ \
+    -v /data/fast/joeran/repos:/repos/ \
+    joeranbosma/picai_swinunetr:latest python -u /repos/picai_baseline/src/picai_baseline/swin_unetr/train.py \
+    --weights_dir='/workdir/results/SwinUNETR/weights/' \
+    --overviews_dir='/workdir/results/SwinUNETR/overviews/' \
+    --folds 0 1 2 3 4 --max_threads 6 --enable_da 1 --num_epochs 250 \
+    --validate_n_epochs 5 --validate_min_epoch 0 --batch_size 3
+"""

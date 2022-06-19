@@ -20,8 +20,11 @@ import SimpleITK as sitk
 from picai_baseline.splits.picai_nnunet import nnunet_splits
 
 # specify paths to preprocessed data in nnU-Net Raw Data Archive
-preprocessed_data_path = Path('/workdir/nnUNet_raw_data/Task2201_picai_baseline/')
-overviews_path = Path('/workdir/results/UNet/overviews/')
+preprocessed_data_path = Path('/workdir/nnUNet_raw_data/Task201_picai_swinunetr/')
+overviews_path = Path('/workdir/results/SwinUNETR/overviews/')
+study_list_exclude = [
+    "1001499"
+]
 
 # create directory to store overviews
 overviews_path.mkdir(parents=True, exist_ok=True)
@@ -46,6 +49,8 @@ for fold, nnunet_fold in enumerate(nnunet_splits):
         # iterate over each training/validation case
         for subject_id in nnunet_split:
             patient_id, study_id = subject_id.split('_')
+            if study_id in study_list_exclude:
+                continue
 
             # load annotation
             lbl = sitk.GetArrayFromImage(sitk.ReadImage(str(preprocessed_data_path / 'labelsTr' / f'{subject_id}.nii.gz')))
