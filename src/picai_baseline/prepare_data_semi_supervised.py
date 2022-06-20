@@ -45,7 +45,7 @@ task = "Task2203_picai_baseline"
 # paths
 mha_archive_dir = inputdir / "images"
 annotations_dir = inputdir / "labels/csPCa_lesion_delineations/combined/"
-mha2nnunet_settings_path = workdir / "mha2nnunet_settings" / "Task2203_picai_baseline.json"
+mha2nnunet_settings_path = workdir / "mha2nnunet_settings" / (task + ".json")
 nnUNet_raw_data_path = workdir / "nnUNet_raw_data"
 nnUNet_task_dir = nnUNet_raw_data_path / task
 nnUNet_dataset_json_path = nnUNet_task_dir / "dataset.json"
