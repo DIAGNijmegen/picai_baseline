@@ -29,7 +29,7 @@ for fold in range(5):
 
     for checkpoint in checkpoints:
         softmax_dir = results_dir / task / trainer / f"fold_{fold}/picai_pubtrain_predictions_{checkpoint}"
-        metrics_path = softmax_dir / "metrics.json"
+        metrics_path = softmax_dir.parent  / f"metrics-{checkpoint}.json"
 
         if metrics_path.exists():
             print(f"Metrics found at {metrics_path}, skipping..")
