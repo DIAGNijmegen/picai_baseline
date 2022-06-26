@@ -65,7 +65,7 @@ def main():
                         help="Number of training epochs")
     parser.add_argument('--base_lr', type=float, default=0.001,            
                         help="Learning rate")
-    parser.add_argument('--focal_loss_gamma', type=float, default=0.0,              
+    parser.add_argument('--focal_loss_gamma', type=float, default=1.0,              
                         help="Focal Loss gamma value")
     parser.add_argument('--enable_da', type=int, default=1,                
                         help="Enable data augmentation")
