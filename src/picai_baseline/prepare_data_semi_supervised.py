@@ -18,8 +18,10 @@ from pathlib import Path
 
 import SimpleITK as sitk
 from picai_prep import MHA2nnUNetConverter
+from picai_prep.data_utils import atomic_image_write
 from picai_prep.examples.mha2nnunet.picai_archive import \
     generate_mha2nnunet_settings
+from tqdm import tqdm
 
 from picai_baseline.splits.picai import nnunet_splits
 
@@ -44,7 +46,9 @@ task = "Task2203_picai_baseline"
 
 # paths
 mha_archive_dir = inputdir / "images"
-annotations_dir = inputdir / "labels/csPCa_lesion_delineations/combined/"
+annotations_dir_human_expert = inputdir / "picai_labels/csPCa_lesion_delineations/human_expert/resampled/"
+annotations_dir_ai_derived = inputdir / "picai_labels/csPCa_lesion_delineations/AI/Bosma22a/"
+annotations_dir = inputdir / "picai_labels/csPCa_lesion_delineations/combined/"
 mha2nnunet_settings_path = workdir / "mha2nnunet_settings" / (task + ".json")
 nnUNet_raw_data_path = workdir / "nnUNet_raw_data"
 nnUNet_task_dir = nnUNet_raw_data_path / task
@@ -64,6 +68,25 @@ def preprocess_picai_annotation(lbl: sitk.Image) -> sitk.Image:
     lbl_new.CopyInformation(lbl)
     return lbl_new
 
+
+# prepare annotations folder with human-expert and AI-derived annotations
+annotations_dir.mkdir(parents=True, exist_ok=True)
+if len(os.listdir(annotations_dir)) == 1500:
+    print("Annotations folder already prepared, skipping..")
+else:
+    print("Preparing annotations folder with human-expert and AI-derived annotations")
+    for fn in tqdm(os.listdir(annotations_dir_human_expert), desc="Copying human expert annotations"):
+        path_src = annotations_dir_human_expert / fn
+        path_dst = annotations_dir / fn
+        if fn.endswith(".nii.gz") and not path_dst.exists():
+            lbl = sitk.ReadImage(str(path_src))
+            atomic_image_write(lbl, path_dst)
+    for fn in tqdm(os.listdir(annotations_dir_ai_derived), desc="Copying AI-derived annotations"):
+        path_src = annotations_dir_ai_derived / fn
+        path_dst = annotations_dir / fn
+        if fn.endswith(".nii.gz") and not path_dst.exists():
+            lbl = sitk.ReadImage(str(path_src))
+            atomic_image_write(lbl, path_dst)
 
 if mha2nnunet_settings_path.exists():
     print(f"Found mha2nnunet settings at {mha2nnunet_settings_path}, skipping..")
