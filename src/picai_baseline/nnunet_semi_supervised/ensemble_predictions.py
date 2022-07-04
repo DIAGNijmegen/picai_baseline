@@ -1,14 +1,10 @@
-import os
 import pickle
 from pathlib import Path
 from typing import List
 
 import numpy as np
-import SimpleITK as sitk
 from picai_baseline.splits.picai import train_splits, valid_splits
 from picai_eval.image_utils import read_prediction
-from picai_prep.data_utils import atomic_image_write
-from picai_prep.preprocessing import resample_to_reference_scan
 from tqdm import tqdm
 
 from softmax_export import save_softmax_nifti_from_softmax
