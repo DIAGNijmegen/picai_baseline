@@ -3,8 +3,8 @@ pandas>=1.2.4
 SimpleITK>=2.1.1.2
 scikit_learn>=1.0.2
 scikit_image>=0.18.1
-git+https://github.com/DIAGNijmegen/picai_eval
-git+https://github.com/DIAGNijmegen/picai_prep
+picai_eval
+picai_prep
 torch>=1.9.0+cu111
 torchvision>=0.10.0+cu111
 threadpoolctl>=3.1.0
