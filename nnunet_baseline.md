@@ -150,6 +150,10 @@ cp /workdir/results/nnUNet/3d_fullres/Task2201_picai_baseline/nnUNetTrainerV2_Lo
 After collecting these files, please continue with the instructions provided in [Submission of Inference Containers to the Open Development Phase](https://pi-cai.grand-challenge.org/ai-algorithm-submissions/).
 
 
+### nnU-Net - Semi-supervised Training
+The [semi-supervised nnU-Net model](https://github.com/DIAGNijmegen/picai_nnunet_semi_supervised_gc_algorithm) is trained in a very similar manner as the supervised nnU-Net model. To train the semi-supervised model, prepare the dataset using [`prepare_data_semi_supervised.py`](src/picai_baseline/prepare_data_semi_supervised.py). See [Data Preprocessing](README.md#data-preprocessing) for details. Then, follow the steps above, replacing `Task2201_picai_baseline` with `Task2203_picai_baseline`.
+
+
 ## References
 <a id="1" href="https://www.nature.com/articles/s41592-020-01008-z">[1]</a> 
 Fabian Isensee, Paul F. Jaeger, Simon A. A. Kohl, Jens Petersen and Klaus H. Maier-Hein. "nnU-Net: a self-configuring method for deep learning-based biomedical image segmentation". Nature Methods 18.2 (2021): 203-211.
