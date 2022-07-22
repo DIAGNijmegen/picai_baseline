@@ -23,6 +23,11 @@ from picai_baseline.splits.picai_nnunet import nnunet_splits
 preprocessed_data_path = Path('/workdir/nnUNet_raw_data/Task2201_picai_baseline/')
 overviews_path = Path('/workdir/results/UNet/overviews/')
 
+# specify cases that should be excluded from the train and validation sets
+excluded_cases = [
+    '11475_1001499'  # cannot be preprocessed with the default baseline U-Net preprocessing config
+]
+
 # create directory to store overviews
 overviews_path.mkdir(parents=True, exist_ok=True)
 
@@ -46,6 +51,10 @@ for fold, nnunet_fold in enumerate(nnunet_splits):
         # iterate over each training/validation case
         for subject_id in nnunet_split:
             patient_id, study_id = subject_id.split('_')
+
+            # skip excluded case(s)
+            if subject_id in excluded_cases:
+                continue
 
             # load annotation
             lbl = sitk.GetArrayFromImage(sitk.ReadImage(str(preprocessed_data_path / 'labelsTr' / f'{subject_id}.nii.gz')))
