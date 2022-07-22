@@ -23,8 +23,10 @@ from picai_baseline.splits.picai_nnunet import nnunet_splits
 preprocessed_data_path = Path('/workdir/nnUNet_raw_data/Task2201_picai_baseline/')
 overviews_path = Path('/workdir/results/UNet/overviews/')
 
-# '11475_1001499' cannot be preprocessed with the default baseline U-Net preproc. config
-excluded_cases = ['11475_1001499']
+# specify cases that should be excluded from the train and validation sets
+excluded_cases = [
+    '11475_1001499'  # cannot be preprocessed with the default baseline U-Net preprocessing config
+]
 
 # create directory to store overviews
 overviews_path.mkdir(parents=True, exist_ok=True)
