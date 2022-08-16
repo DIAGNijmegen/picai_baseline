@@ -30,7 +30,7 @@ This command creates `.json`-based lists of every scan and its corresponding det
 
 
 ### U-Net - Training and Cross-Validation
-The overall framework for training this U-Net has been set up using various modular components from the [`monai`](https://github.com/Project-MONAI/MONAI) module (e.g. U-Net architecture, template for training) and the [`batchgenerators`](https://github.com/MIC-DKFZ/batchgenerators) module (e.g. data loaders, data augmentation policy as incorporatd in the [nnU-Net](nnunet_baseline.md)). To train the model, run the following command:
+The overall framework for training this U-Net has been set up using various modular components from the [`monai`](https://github.com/Project-MONAI/MONAI) module (e.g. U-Net architecture, template for training) and the [`batchgenerators`](https://github.com/MIC-DKFZ/batchgenerators) module (e.g. data loaders, data augmentation policy as incorporated in the [nnU-Net](nnunet_baseline.md)). To train the model, run the following command:
 
 ```bash
 python -u src/picai_baseline/unet/train.py \
@@ -39,6 +39,8 @@ python -u src/picai_baseline/unet/train.py \
   --folds 0 1 2 3 4 --max_threads 6 --enable_da 1 --num_epochs 250 \
   --validate_n_epochs 1 --validate_min_epoch 0
 ```
+⚠️ If you are running this command inside a Docker container, please make sure that your container has at least 16 GB of shared memory space. Otherwise, you may run into issues with data generators and multithreading, as documented [here](https://grand-challenge.org/forums/forum/pi-cai-607/topic/single-and-multithreadedaugmenter-attribute-error-while-training-unet-1085/).
+
 Full list of all available training arguments can be found in [`train.py`](src/picai_baseline/unet/train.py). Here is a summary of the arguments used in the command above:
 
 | Argument                 | Meaning                |
@@ -93,15 +95,6 @@ def process_model_weights(input_ckpt_path, output_ckpt_path):
         'model_state_dict': checkpoint['model_state_dict']}, output_ckpt_path)
 ```
 
-If you're using an ensemble, this function should be applied to each checkpoint file per member model (e.g. an ensemble can consist of the five models derived from all five folds of training/cross-validation). Next, we highly recommend completing the [full tutorial on how to create algorithms on grand-challenge.org](https://grand-challenge.org/documentation/create-your-own-algorithm/). In accordance with the same, we've built an [**example algorithm for you to use/adapt here**](https://github.com/DIAGNijmegen/picai_unet_gc_algorithm). If you've followed the exact steps and default commands stated in this README thus far, all you have to do is copy [this directory](https://github.com/DIAGNijmegen/picai_unet_gc_algorithm) to your local system, add your checkpoint file(s) to [`picai_unet_gc_algorithm/weights/`](https://github.com/DIAGNijmegen/picai_unet_gc_algorithm/tree/main/weights), run [`picai_unet_gc_algorithm/build.bat`](https://github.com/DIAGNijmegen/picai_unet_gc_algorithm/blob/main/build.bat) (on Windows) or [`picai_unet_gc_algorithm/build.sh`](https://github.com/DIAGNijmegen/picai_unet_gc_algorithm/blob/main/build.sh) (on Linux/macOS), followed by [`picai_unet_gc_algorithm/export.bat`](https://github.com/DIAGNijmegen/picai_unet_gc_algorithm/blob/main/export.bat) (on Windows) or [`picai_unet_gc_algorithm/export.sh`](https://github.com/DIAGNijmegen/picai_unet_gc_algorithm/blob/main/export.sh) (on Linux/macOS), and you're good to go. Note, you must have [Docker](https://docs.docker.com/get-docker/) installed on your system for this to work. Once complete, navigate to the [**'Grand Challenge - Create Algorithm'**](https://grand-challenge.org/algorithms/create/) page and fill in the form with the following fields:
+If you're using an ensemble, this function should be applied to each checkpoint file per member model (e.g. an ensemble can consist of the five models derived from all five folds of training/cross-validation). 
 
-| Field                 | Recommended Value                |
-|:-------------------------|:-----------------------|
-| Modalities | `MR` |
-| Structures | `Prostate (Pelvis)` |
-| Viewer | `Viewer CIRRUS Core (Public)` |
-| Viewer Configuration | `Multiparametric MRI (created by chris.vanrun.diag)` |
-| Inputs | `Transverse T2 Prostate MRI (Image)`, `Transverse ADC Prostate MRI (Image)`, `Transverse HBV Prostate MRI (Image)`, `Coronal T2 Prostate MRI (Image)`, `Sagittal T2 Prostate MRI (Image)` and `Clinical Information Prostate MRI (Anything)` |
-| Outputs | `Transverse Cancer Detection Map Prostate MRI (Heat Map)` and `Case-level Cancer Likelihood Prostate MRI (Float)` |
-
-Click the **"Save"** button, then the **"Containers"** tab on the left panel, and then the **"Upload a Container"** button. Upload the resultant `.tar.gz` file that was created when building your algorithm, and click **"Save"** when complete. It typically takes 20-60 minutes till your container is activated (depending on the size of your container). Once its status is active, test out your container with a sample, unprocessed training case from the [**PI-CAI: Public Training and Development Dataset**](https://zenodo.org/record/6522364). Assuming that it behaves as expected and without errors, you're now ready to make submissions to the [**Open Development Phase**](https://pi-cai.grand-challenge.org/evaluation/open-development-phase/submissions/create/) of the challenge.
+Next, we highly recommend completing the [full tutorial on how to create algorithms on grand-challenge.org](https://grand-challenge.org/documentation/create-your-own-algorithm/). In accordance with the same, we've built an [**example algorithm for you to use/adapt here**](https://github.com/DIAGNijmegen/picai_unet_gc_algorithm). Head over to the ["AI: Algorithm Submissions" page](https://pi-cai.grand-challenge.org/ai-algorithm-submissions/) on the challenge website for more details, and the final steps needed to make a submission to the PI-CAI challenge.
