@@ -23,7 +23,7 @@ from report_guided_annotation import extract_lesion_candidates
 
 task = "Task2201_picai_baseline"
 trainer = "nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1"
-task_dir = Path("/media/pelvis/projects/joeran/picai/workdir/results/nnUNet/3d_fullres/") / task
+task_dir = Path("/workdir/results/nnUNet/3d_fullres/") / task
 checkpoints = ["model_best"]
 
 
@@ -48,7 +48,7 @@ for fold in range(5):
         # evaluate
         metrics = evaluate_folder(
             y_det_dir=softmax_dir,
-            y_true_dir=f"/media/pelvis/projects/joeran/picai/workdir/nnUNet_raw_data/{task}/labelsTr",
+            y_true_dir=f"/workdir/nnUNet_raw_data/{task}/labelsTr",
             subject_list=valid_splits[fold]['subject_list'],
             pred_extensions=['_softmax.nii.gz'],
             y_det_postprocess_func=lambda pred: extract_lesion_candidates(pred, threshold="dynamic")[0],
