@@ -1,26 +1,27 @@
-#    Copyright 2020 Division of Medical Image Computing, German Cancer Research Center (DKFZ), Heidelberg, Germany
+#  Copyright 2022 Diagnostic Image Analysis Group, Radboudumc, Nijmegen, The Netherlands
 #
-#    Licensed under the Apache License, Version 2.0 (the "License");
-#    you may not use this file except in compliance with the License.
-#    You may obtain a copy of the License at
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
 #
-#        http://www.apache.org/licenses/LICENSE-2.0
+#      http://www.apache.org/licenses/LICENSE-2.0
 #
-#    Unless required by applicable law or agreed to in writing, software
-#    distributed under the License is distributed on an "AS IS" BASIS,
-#    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#    See the License for the specific language governing permissions and
-#    limitations under the License.
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
 
 import os
-import sys
-from copy import deepcopy
-from typing import Tuple, Union
+import pickle
+from pathlib import Path
+from typing import Optional, Tuple, Union
 
 import numpy as np
 import SimpleITK as sitk
-from batchgenerators.augmentations.utils import resize_segmentation
 from batchgenerators.utilities.file_and_folder_operations import *
+from picai_eval.image_utils import read_prediction
+
 from nnunet.preprocessing.preprocessing import (get_do_separate_z,
                                                 get_lowres_axis,
                                                 resample_data_or_seg)
@@ -168,3 +169,51 @@ def save_softmax_nifti_from_softmax(segmentation_softmax: Union[str, np.ndarray]
         seg_resized_itk.SetOrigin(properties_dict['itk_origin'])
         seg_resized_itk.SetDirection(properties_dict['itk_direction'])
         sitk.WriteImage(seg_resized_itk, non_postprocessed_fname)
+
+
+def convert_cropped_npz_to_original_nifty(
+    npz_path: Union[Path, str],
+    pkl_path: Optional[Union[Path, str]] = None,
+    dst_path: Optional[Union[Path, str]] = None,
+    overwrite: bool = False,
+) -> None:
+    """
+    Convert nnUNet's softmax prediction (stored as .npz) to
+    the scan's original extent (before cropping).
+
+    Parameters
+    ----------
+    - npz_path: path to prediction as .npz file
+    - pkl_path: path to metadata about nnU-Net preprocessing
+        default: npz_path with .pkl instead of .npz
+    - dst_path: path to save converted softmax to
+        default: npz_path with _softmax.nii.gz instead of .npz
+    - overwrite: whether to overwrite an existing softmax prediction
+    """
+    npz_path = Path(npz_path)
+    if pkl_path is None:
+        pkl_path = npz_path.with_name(f"{npz_path.stem}.pkl")
+    if dst_path is None:
+        dst_path = npz_path.with_name(f"{npz_path.stem}_softmax.nii.gz")
+    else:
+        dst_path = Path(dst_path)
+    if not overwrite and dst_path.exists():
+        return
+
+    # read prediction and preprocessing info
+    # read predictions from all folds
+    pred = read_prediction(npz_path)
+
+    # convert to nnUNet's internal softmax format
+    pred = np.array([1-pred, pred])
+
+    # read physical properties of current case
+    with open(pkl_path, "rb") as fp:
+        properties = pickle.load(fp)
+
+    # let nnUNet resample to original physical space
+    save_softmax_nifti_from_softmax(
+        segmentation_softmax=pred,
+        out_fname=str(dst_path),
+        properties_dict=properties,
+    )

@@ -1,47 +1,43 @@
+from multiprocessing import Pool
 from pathlib import Path
 
+from picai_baseline.nnunet.softmax_export import \
+    convert_cropped_npz_to_original_nifty
 from picai_baseline.splits.picai_nnunet import valid_splits
 from picai_eval import evaluate_folder
-from picai_prep.preprocessing import crop_or_pad
 from report_guided_annotation import extract_lesion_candidates
-
-
-def nnUNet_cropped_prediction_compatibility(img):
-    return crop_or_pad(img, size=(20, 320, 320))
-
-
-def extract_lesion_candidates_compatibility(pred):
-    return nnUNet_cropped_prediction_compatibility(extract_lesion_candidates(pred)[0])
-
 
 task = "Task2201_picai_baseline"
 trainer = "nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1"
-results_dir = Path("/workdir/results/nnUNet/3d_fullres/")
+task_dir = Path("/media/pelvis/projects/joeran/picai/workdir/results/nnUNet/3d_fullres/") / task
+checkpoints = ["model_best"]
+
 
 for fold in range(5):
     print(f"Fold {fold}")
-    if fold == 0:
-        checkpoints = ["model_best", "model_final_checkpoint"] + [
-            f"model_ep_{epoch:03d}" for epoch in range(50, 950+1, 50)
-        ]
-    else:
-        checkpoints = ["model_best"]
 
     for checkpoint in checkpoints:
-        softmax_dir = results_dir / task / trainer / f"fold_{fold}/picai_pubtrain_predictions_{checkpoint}"
-        metrics_path = softmax_dir.parent  / f"metrics-{checkpoint}.json"
+        softmax_dir = task_dir / trainer / f"fold_{fold}/picai_pubtrain_predictions_{checkpoint}"
+        metrics_path = softmax_dir.parent  / f"metrics-{checkpoint}-picai_eval-dynamic.json"
 
         if metrics_path.exists():
             print(f"Metrics found at {metrics_path}, skipping..")
             continue
 
+        # pad raw npz predictions to their original extent
+        with Pool() as pool:
+            pool.map(
+                func=convert_cropped_npz_to_original_nifty,
+                iterable=list(softmax_dir.glob("*.npz")),
+            )
+
         # evaluate
         metrics = evaluate_folder(
             y_det_dir=softmax_dir,
-            y_true_dir=f"/workdir/nnUNet_raw_data/{task}/labelsTr",
+            y_true_dir=f"/media/pelvis/projects/joeran/picai/workdir/nnUNet_raw_data/{task}/labelsTr",
             subject_list=valid_splits[fold]['subject_list'],
-            y_det_postprocess_func=extract_lesion_candidates_compatibility,
-            y_true_postprocess_func=nnUNet_cropped_prediction_compatibility,
+            pred_extensions=['_softmax.nii.gz'],
+            y_det_postprocess_func=lambda pred: extract_lesion_candidates(pred, threshold="dynamic")[0],
         )
 
         # save and show metrics
