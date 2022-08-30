@@ -42,7 +42,7 @@ for fold in range(5):
         with Pool() as pool:
             pool.map(
                 func=convert_cropped_npz_to_original_nifty,
-                iterable=list(softmax_dir.glob("*.npz")),
+                iterable=softmax_dir.glob("*.npz"),
             )
 
         # evaluate
