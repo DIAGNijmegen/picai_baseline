@@ -3,11 +3,11 @@ from pathlib import Path
 from typing import List
 
 import numpy as np
+from picai_baseline.nnunet.softmax_export import \
+    save_softmax_nifti_from_softmax
 from picai_baseline.splits.picai import train_splits, valid_splits
 from picai_eval.image_utils import read_prediction
 from tqdm import tqdm
-
-from softmax_export import save_softmax_nifti_from_softmax
 
 nnUNet_results = Path("/workdir/results/nnUNet/3d_fullres/")
 in_dir_scans_original = Path("/input/images")
