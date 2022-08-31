@@ -35,7 +35,7 @@ RUN pip3 install \
     picai_prep
 
 RUN echo 1
-RUN pip3 install git+https://github.com/DIAGNijmegen/picai_baseline
+RUN pip3 install git+https://github.com/DIAGNijmegen/picai_baseline@nnUNet-inference-softmax
 
 # copy custom files to nnUNet folder
 COPY nnUNetTrainerV2_focalLoss.py /tmp/nnUNetTrainerV2_focalLoss.py
