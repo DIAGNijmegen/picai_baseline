@@ -27,7 +27,7 @@ if __name__ == "__main__":
     parser.add_argument("--threshold", type=str, default="dynamic",
                         help="Threshold for lesion extraction from softmax predictions. " + \
                              "Use dynamic-fast for quicker evaluation at almost equal performance")
-    parser.add_argument("--metrics_fn", type=str, default="metrics-{checkpoint}-picai_eval-{threshold}.json")
+    parser.add_argument("--metrics_fn", type=str, default="metrics-{checkpoint}-{threshold}.json")
     args = parser.parse_args()
 
     # evaluate
