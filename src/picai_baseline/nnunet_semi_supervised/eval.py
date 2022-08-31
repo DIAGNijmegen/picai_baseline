@@ -12,50 +12,30 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-from multiprocessing import Pool
-from pathlib import Path
+import argparse
 
-from picai_baseline.nnunet.softmax_export import \
-    convert_cropped_npz_to_original_nifty
-from picai_baseline.splits.picai_nnunet import valid_splits
-from picai_eval import evaluate_folder
-from report_guided_annotation import extract_lesion_candidates
+from picai_baseline.nnunet.eval import evaluate
 
-task = "Task2203_picai_baseline"
-trainer = "nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1"
-workdir = Path("/workdir")
-task_dir = workdir / "results" / "nnUNet" / "3d_fullres" / task
-checkpoints = ["model_best"]
-threshold = "dynamic"  # use dynamic-fast for quicker evaluation at almost equal performance
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Command Line Arguments')
+    parser.add_argument("--task", type=str, default="Task2203_picai_baseline")
+    parser.add_argument("--trainer", type=str, default="nnUNetTrainerV2_Loss_FL_and_CE_checkpoints")
+    parser.add_argument("--workdir", type=str, default="/workdir")
+    parser.add_argument("--task_dir", type=str, default="auto")
+    parser.add_argument("--checkpoints", type=str, nargs="+", default=["model_best"])
+    parser.add_argument("--folds", type=int, nargs="+", default=list(range(5)))
+    parser.add_argument("--threshold", type=str, default="dynamic",
+                        help="Threshold for lesion extraction from softmax predictions. " + \
+                             "Use dynamic-fast for quicker evaluation at almost equal performance")
+    args = parser.parse_args()
 
-for fold in range(5):
-    print(f"Fold {fold}")
-
-    for checkpoint in checkpoints:
-        softmax_dir = task_dir / trainer / f"fold_{fold}/picai_pubtrain_predictions_{checkpoint}"
-        metrics_path = softmax_dir.parent / f"metrics-{checkpoint}-picai_eval-{threshold}.json"
-
-        if metrics_path.exists():
-            print(f"Metrics found at {metrics_path}, skipping..")
-            continue
-
-        # pad raw npz predictions to their original extent
-        with Pool() as pool:
-            pool.map(
-                func=convert_cropped_npz_to_original_nifty,
-                iterable=softmax_dir.glob("*.npz"),
-            )
-
-        # evaluate
-        metrics = evaluate_folder(
-            y_det_dir=softmax_dir,
-            y_true_dir=workdir / "nnUNet_raw_data" / task / "labelsTr",
-            subject_list=valid_splits[fold]['subject_list'],
-            pred_extensions=['_softmax.nii.gz'],
-            y_det_postprocess_func=lambda pred: extract_lesion_candidates(pred, threshold=threshold)[0],
-        )
-
-        # save and show metrics
-        metrics.save(metrics_path)
-        print(f"Results for checkpoint {checkpoint}:")
-        print(metrics)
+    # evaluate
+    evaluate(
+        task=args.task,
+        trainer=args.trainer,
+        workdir=args.workdir,
+        task_dir=args.task_dir,
+        checkpoints=args.checkpoints,
+        folds=args.folds,
+        threshold=args.threshold,
+    )
