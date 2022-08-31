@@ -93,7 +93,7 @@ The nnU-Net softmax predictions (saved as .npz files) cannot be used directly, b
 All of the above steps are combined in [picai_baseline/nnunet/eval.py](src/picai_baseline/nnunet/eval.py), enabling evaluation from the command line:
 
 ```bash
-python /path/to/picai_baseline/src/picai_baseline/nnunet/eval.py --task=Task2201_picai_baseline --workdir=/path/to/workdir
+python /path/to/picai_baseline/nnunet/eval.py --task=Task2201_picai_baseline --workdir=/path/to/workdir
 ```
 
 Or from Python:
