@@ -114,7 +114,11 @@ To load the metrics for subsequent analysis, we recommend loading the metrics us
 
 ```python
 from picai_eval import Metrics
-metrics = Metrics("/output/predictions_fold_0/metrics.json")
+
+fold = 0
+checkpoint = "model_best"
+threshold = "dynamic"
+metrics = Metrics(f"/path/to/workdir/results/nnUNet/3d_fullres/Task2201_picai_baseline/nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1/fold_{fold}/metrics-{checkpoint}-{threshold}.json")
 print(f"PI-CAI ranking score: {metrics.score:.4f} " +
       + f"(50% AUROC={metrics.auroc:.4f} + 50% AP={metrics.AP:.4f})")
 ```
