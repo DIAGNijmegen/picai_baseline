@@ -111,7 +111,7 @@ evaluate(
 Or with Docker:
 
 ```bash
-docker run --cpus=2 --memory=16gb --rm \
+docker run --cpus=4 --memory=16gb --rm \
     -v /path/to/workdir/:/workdir/ \
     -v /path/to/repos/:/repos/ \
     joeranbosma/picai_nnunet:latest python3 /repos/picai_baseline/src/picai_baseline/nnunet/eval.py --task=Task2201_picai_baseline
