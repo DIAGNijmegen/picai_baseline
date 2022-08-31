@@ -108,6 +108,15 @@ evaluate(
 )
 ```
 
+Or with Docker:
+
+```bash
+docker run --cpus=2 --memory=16gb --rm \
+    -v /path/to/workdir/:/workdir/ \
+    -v /path/to/repos/:/repos/ \
+    joeranbosma/picai_nnunet:latest python3 /repos/picai_baseline/src/picai_baseline/nnunet/eval.py --task=Task2201_picai_baseline
+```
+
 The metrics will be displayed in the command line and stored to `metrics-{checkpoint}-{threshold}.json` (by default in `/path/to/workdir/results/nnUNet/3d_fullres/Task2201_picai_baseline/nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1/fold_[0,1,2,3,4]`). To see additional options and default parameters, please refer to the command line help (`python src/picai_baseline/nnunet/eval.py -h`) or the [source code](src/picai_baseline/nnunet/eval.py).
 
 To load the metrics for subsequent analysis, we recommend loading the metrics using `picai_eval`, this allows on-the-fly calculation of metrics (described in more detail [here](https://github.com/DIAGNijmegen/picai_eval#accessing-metrics-after-evaluation)):
