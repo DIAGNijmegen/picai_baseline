@@ -88,24 +88,29 @@ Repeat this for each fold (change `validation_set/fold_1`, `predictions_fold_1` 
 To evaluate, we can use the `picai_eval` repository, see [here](https://github.com/DIAGNijmegen/picai_eval) for documentation.
 The nnU-Net framework generates _softmax predictions_, while we need _detection maps_ for the PI-CAI challenge. To extract lesion candidates from softmax predictions, we can use the [Report-Guided Annotation repository](https://github.com/DIAGNijmegen/Report-Guided-Annotation). This repository has a [dynamic lesion extraction method](https://github.com/DIAGNijmegen/Report-Guided-Annotation/blob/main/src/report_guided_annotation/extract_lesion_candidates.py), described in [[3]](#3). The lesion candidates from this method are (by design) compatible with the PI-CAI evaluation pipeline. The Report-Guided Annotation repository should be automatically installed when installing the `picai_baseline` repository, and is installed within the [`picai_nnunet`][picai_nnunet_docker] and [`picai_nndetection`][picai_nndetection_docker] Docker containers as well.
 
-```python
-from picai_eval import evaluate_folder
-from report_guided_annotation import extract_lesion_candidates
-from picai_baseline.splits.picai_nnunet import valid_splits
+The nnU-Net softmax predictions (saved as .npz files) cannot be used directly, because these pertain to the cropped/preprocessed images, instead of the original images. To solve this, we wrote a helper function in [picai_baseline/nnunet/softmax_export.py](src/picai_baseline/nnunet/softmax_export.py) to convert a cropped prediction to its original extent.
 
-for fold in range(5):
-    metrics = evaluate_folder(
-        y_det_dir=f"/output/predictions_fold_{fold}",
-        y_true_dir="/workdir/nnUNet_raw_data/Task2201_picai_baseline/labelsTr",
-        subject_list=valid_splits[fold]['subject_list'],
-        y_det_postprocess_func=lambda pred: extract_lesion_candidates(pred)[0],
-    )
-    metrics.save(f"/output/predictions_fold_{fold}/metrics.json")
-    print(f"Results for fold {fold}:")
-    print(metrics)
+All of the above steps are combined in [picai_baseline/nnunet/eval.py](src/picai_baseline/nnunet/eval.py), enabling evaluation from the command line:
+
+```bash
+python /path/to/picai_baseline/src/picai_baseline/nnunet/eval.py --task=Task2201_picai_baseline --workdir=/path/to/workdir
 ```
 
-The metrics will be displayed in the command line and stored to `metrics.json`. To load the metrics for subsequent analysis, we recommend loading the metrics using `picai_eval`, this allows on-the-fly calculation of metrics (described in more detail [here](https://github.com/DIAGNijmegen/picai_eval#accessing-metrics-after-evaluation)):
+Or from Python:
+
+```python
+from picai_baseline.nnunet.eval import evaluate
+
+# evaluate
+evaluate(
+    task="Task2203_picai_baseline",
+    workdir="/path/to/workdir",
+)
+```
+
+The metrics will be displayed in the command line and stored to `metrics-{checkpoint}-{threshold}.json`. To see additional options and default parameters, please refer to the command line help (`python src/picai_baseline/nnunet/eval.py -h`) or the [source code](src/picai_baseline/nnunet/eval.py).
+
+To load the metrics for subsequent analysis, we recommend loading the metrics using `picai_eval`, this allows on-the-fly calculation of metrics (described in more detail [here](https://github.com/DIAGNijmegen/picai_eval#accessing-metrics-after-evaluation)):
 
 ```python
 from picai_eval import Metrics
