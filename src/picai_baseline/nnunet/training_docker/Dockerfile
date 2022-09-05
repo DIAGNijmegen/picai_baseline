@@ -30,7 +30,7 @@ RUN SITE_PKG=`pip3 show nnunet | grep "Location:" | awk '{print $2}'` && \
 
 
 # Install PI-CAI repositories
-RUN pip3 install scikit-learn>=1.0.2
+RUN pip3 install scikit-learn==1.0.2
 RUN pip3 install \
     picai_eval>=1.4.1 \
     picai_prep>=2.0.1 \
