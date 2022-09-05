@@ -117,13 +117,20 @@ else:
 if nnUNet_dataset_json_path.exists():
     print(f"Found dataset.json at {nnUNet_dataset_json_path}, skipping..")
 else:
+    # read preprocessing settings and set the annotation preprocessing function
+    with open(mha2nnunet_settings_path) as fp:
+        mha2nnunet_settings = json.load(fp)
+
+    if not "options" in mha2nnunet_settings:
+        mha2nnunet_settings["options"] = {}
+    mha2nnunet_settings["options"]["annotation_preprocess_func"] = preprocess_picai_annotation
+
     # prepare dataset in nnUNet format
     archive = MHA2nnUNetConverter(
-        input_path=mha_archive_dir,
-        annotations_path=annotations_dir,
-        output_path=nnUNet_raw_data_path,
-        settings_path=mha2nnunet_settings_path,
-        lbl_preprocess_func=preprocess_picai_annotation,
+        output_dir=nnUNet_raw_data_path,
+        scans_dir=mha_archive_dir,
+        annotations_dir=annotations_dir,
+        mha2nnunet_settings=mha2nnunet_settings,
     )
     archive.convert()
     archive.generate_json()
