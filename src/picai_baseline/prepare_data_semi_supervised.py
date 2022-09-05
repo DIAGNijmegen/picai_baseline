@@ -97,6 +97,7 @@ else:
         archive_dir=mha_archive_dir,
         annotations_dir=annotations_dir,
         output_path=mha2nnunet_settings_path,
+        task=task
     )
 
     # read mha2nnunet_settings
@@ -104,14 +105,13 @@ else:
         mha2nnunet_settings = json.load(fp)
 
     # note: modify preprocessing settings here
-    mha2nnunet_settings["dataset_json"]["task"] = task
-    # mha2nnunet_settings["preprocessing"]["matrix_size"] = [20, 256, 256]
-    # mha2nnunet_settings["preprocessing"]["spacing"] = [3.0, 0.5, 0.5]
+    mha2nnunet_settings["preprocessing"]["physical_size"] = [81.0, 192.0, 192.0]
+    mha2nnunet_settings["preprocessing"]["crop_only"] = True
 
     # save mha2nnunet_settings
     with open(mha2nnunet_settings_path, "w") as fp:
         json.dump(mha2nnunet_settings, fp, indent=4)
-    print(f"Saved mha2nnunet settings to {mha2nnunet_settings_path}")
+    print(f"Saved updated mha2nnunet settings to {mha2nnunet_settings_path}")
 
 
 if nnUNet_dataset_json_path.exists():
