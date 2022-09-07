@@ -125,8 +125,8 @@ Alternatively, you can use Docker to run the Python script:
 docker run --cpus=2 --memory=16gb --rm \
     -v /path/to/input/:/input/ \
     -v /path/to/workdir/:/workdir/ \
-    -v /path/to/picai_baseline:/input/picai_baseline/ \
-    joeranbosma/picai_nnunet:latest python3 /input/picai_baseline/src/picai_baseline/prepare_data.py
+    -v /path/to/picai_baseline:/scripts/picai_baseline/ \
+    joeranbosma/picai_nnunet:latest python3 /scripts/picai_baseline/src/picai_baseline/prepare_data.py
 ```
 
 
