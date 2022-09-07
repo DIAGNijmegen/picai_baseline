@@ -133,7 +133,7 @@ else:
         mha2nnunet_settings=mha2nnunet_settings,
     )
     archive.convert()
-    archive.generate_json()
+    archive.create_dataset_json()
 
 if nnUNet_splits_path.exists():
     print(f"Found cross-validation splits at {nnUNet_splits_path}, skipping..")
