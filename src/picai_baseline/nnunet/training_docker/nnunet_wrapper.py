@@ -12,11 +12,10 @@ from pathlib import Path
 
 import numpy as np
 from carbontracker.tracker import CarbonTracker
-from picai_prep.data_utils import atomic_file_copy
-
 from nnunet.utilities import shutil_sol
 from nnunet.utilities.io import (checksum, path_exists, read_json,
                                  refresh_file_list, write_json)
+from picai_prep.data_utils import atomic_file_copy
 
 PLANS = 'nnUNetPlansv2.1'
 
@@ -202,7 +201,8 @@ def plan_train(argv):
 
     # Set environment variables
     datadir = Path(args.data)
-    prepdir = Path('/home/user/data')
+    prepdir = Path(os.environ.get('prepdir', '/home/user/data'))
+
     splits_file = prepdir / args.task / 'splits_final.pkl'
 
     os.environ['nnUNet_raw_data_base'] = str(datadir)
@@ -263,10 +263,11 @@ def plan_train(argv):
                     pickle.dump(splits, fp)
                 shutil_sol.copyfile(args.custom_split, splits_file.with_suffix('.json'))
 
-            # Copy preprocessed data to storage server
-            print('[#] Copying plans and preprocessed data from compute node to storage server')
-            taskdir.parent.mkdir(parents=True, exist_ok=True)
-            shutil_sol.copytree(prepdir / args.task, taskdir)
+            if (prepdir / args.task).absolute() != taskdir.absolute():
+                # Copy preprocessed data to storage server
+                print('[#] Copying plans and preprocessed data from compute node to storage server')
+                taskdir.parent.mkdir(parents=True, exist_ok=True)
+                shutil_sol.copytree(prepdir / args.task, taskdir)
 
         if args.plan_only:
             return

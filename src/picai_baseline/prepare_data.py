@@ -30,14 +30,8 @@ https://github.com/DIAGNijmegen/picai_baseline#prepare-data
 """
 
 # environment settings
-if 'inputdir' in os.environ:
-    inputdir = Path(os.environ['inputdir'])
-else:
-    inputdir = Path("/input")
-if 'workdir' in os.environ:
-    workdir = Path(os.environ['workdir'])
-else:
-    workdir = Path("/workdir")
+inputdir = Path(os.environ.get("inputdir", "/input"))
+workdir = Path(os.environ.get("workdir", "/workdir"))
 
 # settings
 task = "Task2201_picai_baseline"
