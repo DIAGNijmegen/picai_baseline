@@ -4,7 +4,7 @@ from subprocess import check_call
 
 # Install dependencies
 print("Installing dependencies...")
-scripts_dir = Path("src/picai_baseline/nnunet_semi_supervised/training_sagemaker/code")
+scripts_dir = Path("code")
 assert scripts_dir.exists(), f"Path {scripts_dir.absolute()} does not exist"
 
 if not (scripts_dir / "nnunet").exists():
