@@ -1,0 +1,9 @@
+graphviz
+carbontracker
+picai_eval>=1.4.1
+picai_prep>=2.0.1
+git+https://github.com/DIAGNijmegen/picai_baseline
+git+https://github.com/nanohanno/hiddenlayer.git@bugfix/get_trace_graph#egg=hiddenlayer
+sagemaker[local]
+fsspec
+s3fs

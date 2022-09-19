@@ -137,3 +137,5 @@ tests/metrics.json
 *.model.pkl
 plans.pkl
 src/picai_baseline/nnunet/split_cv_cases.py
+src/picai_baseline/nnunet_semi_supervised/training_sagemaker/code/nnunet/
+src/picai_baseline/nnunet_semi_supervised/training_sagemaker/code/picai_baseline/
