@@ -12,6 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+import argparse
 import json
 import os
 from pathlib import Path
@@ -29,16 +30,29 @@ For documentation, please see:
 https://github.com/DIAGNijmegen/picai_baseline#prepare-data
 """
 
-# environment settings
-inputdir = Path(os.environ.get("inputdir", "/input"))
-workdir = Path(os.environ.get("workdir", "/workdir"))
+# set paths
+parser = argparse.ArgumentParser()
+parser.add_argument("--workdir", type=str, default=os.environ.get("workdir", "/workdir"),
+                    help="Path to the working directory (default: /workdir, or the environment variable 'workdir')")
+parser.add_argument("--inputdir", type=str, default=os.environ.get("inputdir", "/input"),
+                    help="Path to the input dataset (default: /input, or the environment variable 'inputdir')")
+parser.add_argument("--imagesdir", type=str, default="images",
+                    help="Path to the images, relative to --inputdir (default: /input/images)")
+parser.add_argument("--labelsdir", type=str, default="picai_labels",
+                    help="Path to the labels, relative to --inputdir (root of picai_labels) (default: /input/picai_labels)")
+args, _ = parser.parse_known_args()
+
+# parse paths
+workdir = Path(args.workdir)
+inputdir = Path(args.inputdir)
+imagesdir = Path(inputdir / args.imagesdir)
+labelsdir = Path(inputdir / args.labelsdir)
 
 # settings
 task = "Task2201_picai_baseline"
 
 # paths
-mha_archive_dir = inputdir / "images"
-annotations_dir = inputdir / "labels/csPCa_lesion_delineations/human_expert/resampled/"
+annotations_dir = labelsdir / "csPCa_lesion_delineations/human_expert/resampled/"
 mha2nnunet_settings_path = workdir / "mha2nnunet_settings" / "Task2201_picai_baseline.json"
 nnUNet_raw_data_path = workdir / "nnUNet_raw_data"
 nnUNet_task_dir = nnUNet_raw_data_path / task
@@ -65,7 +79,7 @@ else:
     # generate mha2nnunet conversion plan
     Path(mha2nnunet_settings_path.parent).mkdir(parents=True, exist_ok=True)
     generate_mha2nnunet_settings(
-        archive_dir=mha_archive_dir,
+        archive_dir=imagesdir,
         annotations_dir=annotations_dir,
         output_path=mha2nnunet_settings_path,
     )
@@ -98,7 +112,7 @@ else:
     # prepare dataset in nnUNet format
     archive = MHA2nnUNetConverter(
         output_dir=nnUNet_raw_data_path,
-        scans_dir=mha_archive_dir,
+        scans_dir=imagesdir,
         annotations_dir=annotations_dir,
         mha2nnunet_settings=mha2nnunet_settings,
     )
