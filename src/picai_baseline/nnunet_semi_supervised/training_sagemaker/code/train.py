@@ -11,10 +11,10 @@ def main():
 
     # input data and model directories
     parser.add_argument('--workdir', type=str, default="/workdir")
-    parser.add_argument('--imagesdir', type=str, default=os.environ['SM_CHANNEL_IMAGES'])
-    parser.add_argument('--labelsdir', type=str, default=os.environ['SM_CHANNEL_LABELS'])
-    parser.add_argument('--scriptsdir', type=str, default=os.environ['SM_CHANNEL_SCRIPTS'])
-    parser.add_argument('--outputdir', type=str, default=os.environ['SM_MODEL_DIR'])
+    parser.add_argument('--imagesdir', type=str, default=os.environ.get('SM_CHANNEL_IMAGES', "/input/images"))
+    parser.add_argument('--labelsdir', type=str, default=os.environ.get('SM_CHANNEL_LABELS', "/input/picai_labels"))
+    parser.add_argument('--scriptsdir', type=str, default=os.environ.get('SM_CHANNEL_SCRIPTS', "/scripts"))
+    parser.add_argument('--outputdir', type=str, default=os.environ.get('SM_MODEL_DIR', "/output"))
 
     args, _ = parser.parse_known_args()
 
@@ -25,21 +25,11 @@ def main():
     output_dir = Path(args.outputdir)
     scripts_dir = Path(args.scriptsdir)
 
-    # print input paths
-    print(f"workdir: {workdir}")
-    print(f"images_dir: {images_dir}")
-    print(f"labels_dir: {labels_dir}")
-    print(f"output_dir: {output_dir}")
-    print(f"scripts_dir: {scripts_dir}")
-
     workdir.mkdir(parents=True, exist_ok=True)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    print(scripts_dir, "contains", os.listdir(scripts_dir))
-    print(images_dir, "contains", os.listdir(images_dir))
-    print(labels_dir, "contains", os.listdir(labels_dir))
-
     # install modified nnU-Net
+    print("Installing modified nnU-Net...")
     cmd = [
         "pip",
         "install",
@@ -47,6 +37,17 @@ def main():
         str(scripts_dir / "nnunet"),
     ]
     check_call(cmd)
+
+    # descibe input data
+    print(f"workdir: {workdir}")
+    print(f"images_dir: {images_dir}")
+    print(f"labels_dir: {labels_dir}")
+    print(f"output_dir: {output_dir}")
+    print(f"scripts_dir: {scripts_dir}")
+
+    print("Scripts folder:", os.listdir(scripts_dir))
+    print("Images folder:", os.listdir(images_dir))
+    print("Labels folder:", os.listdir(labels_dir))
 
     # Convert MHA Archive to nnU-Net Raw Data Archive
     # Also, we combine the provided human-expert annotations with the AI-derived annotations.
