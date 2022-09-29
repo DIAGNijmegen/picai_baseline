@@ -18,8 +18,8 @@ pytorch_estimator = PyTorch(
 # Train the estimator
 pytorch_estimator.fit(
     inputs={
-        # 'images': 's3://rumc-picai-d-training-public/images/',
-        # 'labels': 's3://rumc-picai-d-training-public/picai_labels/',
+        'images': 's3://rumc-picai-d-training-public/images/',
+        'labels': 's3://rumc-picai-d-training-public/picai_labels/',
         'scripts': 'file://code/',  # this will be replaced by the participant's code in an S3 bucket
     }
 )

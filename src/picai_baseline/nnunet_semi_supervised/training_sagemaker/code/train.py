@@ -15,6 +15,7 @@ def main():
     parser.add_argument('--labelsdir', type=str, default=os.environ.get('SM_CHANNEL_LABELS', "/input/picai_labels"))
     parser.add_argument('--scriptsdir', type=str, default=os.environ.get('SM_CHANNEL_SCRIPTS', "/scripts"))
     parser.add_argument('--outputdir', type=str, default=os.environ.get('SM_MODEL_DIR', "/output"))
+    parser.add_argument('--nnUNet_n_proc_DA', type=int, default=None)
 
     args, _ = parser.parse_known_args()
 
@@ -62,6 +63,9 @@ def main():
     check_call(cmd)
 
     # Train models
+    if args.nnUNet_n_proc_DA is not None:
+        os.environ["nnUNet_n_proc_DA"] = str(args.nnUNet_n_proc_DA)
+
     folds = range(1)  # range(5) for 5-fold cross-validation
     for fold in folds:
         print(f"Training fold {fold}...")
