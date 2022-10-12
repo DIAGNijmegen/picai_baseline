@@ -1,6 +1,21 @@
+#  Copyright 2022 Diagnostic Image Analysis Group, Radboudumc, Nijmegen, The Netherlands
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+
 import argparse
 import os
 import shutil
+import zipfile
 from pathlib import Path
 from subprocess import check_call
 
@@ -29,33 +44,38 @@ def main():
     workdir.mkdir(parents=True, exist_ok=True)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    # install modified nnU-Net
-    print("Installing modified nnU-Net...")
-    cmd = [
-        "pip",
-        "install",
-        "-e",
-        str(scripts_dir / "nnunet"),
-    ]
-    check_call(cmd)
+    # extract scripts
+    with zipfile.ZipFile(scripts_dir / "code.zip", 'r') as zf:
+        zf.extractall(workdir)
+    local_scripts_dir = workdir / "code"
 
     # descibe input data
     print(f"workdir: {workdir}")
     print(f"images_dir: {images_dir}")
     print(f"labels_dir: {labels_dir}")
     print(f"output_dir: {output_dir}")
-    print(f"scripts_dir: {scripts_dir}")
+    print(f"scripts_dir: {local_scripts_dir}")
 
-    print("Scripts folder:", os.listdir(scripts_dir))
+    print("Scripts folder:", os.listdir(local_scripts_dir))
     print("Images folder:", os.listdir(images_dir))
     print("Labels folder:", os.listdir(labels_dir))
+
+    # install modified nnU-Net
+    print("Installing modified nnU-Net...")
+    cmd = [
+        "pip",
+        "install",
+        "-e",
+        str(local_scripts_dir / "nnunet"),
+    ]
+    check_call(cmd)
 
     # Convert MHA Archive to nnU-Net Raw Data Archive
     # Also, we combine the provided human-expert annotations with the AI-derived annotations.
     print("Preprocessing data...")
     cmd = [
         "python",
-        (scripts_dir / "picai_baseline/src/picai_baseline/prepare_data_semi_supervised.py").as_posix(),
+        (local_scripts_dir / "picai_baseline/src/picai_baseline/prepare_data_semi_supervised.py").as_posix(),
         "--workdir", workdir.as_posix(),
         "--imagesdir", images_dir.as_posix(),
         "--labelsdir", labels_dir.as_posix(),
@@ -70,7 +90,7 @@ def main():
     for fold in folds:
         print(f"Training fold {fold}...")
         cmd = [
-            "python", (scripts_dir / "picai_baseline/src/picai_baseline/nnunet/training_docker/nnunet_wrapper.py").as_posix(),
+            "python", (local_scripts_dir / "picai_baseline/src/picai_baseline/nnunet/training_docker/nnunet_wrapper.py").as_posix(),
             "plan_train", "Task2203_picai_baseline", workdir.as_posix(),
             "--trainer", "nnUNetTrainerV2_Loss_FL_and_CE_checkpoints",
             "--fold", str(fold),
