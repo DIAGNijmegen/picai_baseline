@@ -13,15 +13,18 @@
 #  limitations under the License.
 
 import argparse
+import json
 import os
 import shutil
 import zipfile
 from pathlib import Path
 from subprocess import check_call
 
+from picai_baseline.splits.picai import nnunet_splits
 
-def main():
 
+def main(taskname="Task2203_picai_baseline"):
+    """Train nnU-Net semi-supervised model."""
     parser = argparse.ArgumentParser()
 
     # input data and model directories
@@ -30,6 +33,7 @@ def main():
     parser.add_argument('--labelsdir', type=str, default=os.environ.get('SM_CHANNEL_LABELS', "/input/picai_labels"))
     parser.add_argument('--scriptsdir', type=str, default=os.environ.get('SM_CHANNEL_SCRIPTS', "/scripts"))
     parser.add_argument('--outputdir', type=str, default=os.environ.get('SM_MODEL_DIR', "/output"))
+    parser.add_argument('--checkpointsdir', type=str, default="/checkpoints")
     parser.add_argument('--nnUNet_n_proc_DA', type=int, default=None)
 
     args, _ = parser.parse_known_args()
@@ -40,9 +44,15 @@ def main():
     labels_dir = Path(args.labelsdir)
     output_dir = Path(args.outputdir)
     scripts_dir = Path(args.scriptsdir)
+    checkpoints_dir = Path(args.checkpointsdir)
+    nnUNet_splits_path = workdir / f"nnUNet_raw_data/{taskname}/splits.json"
 
     workdir.mkdir(parents=True, exist_ok=True)
     output_dir.mkdir(parents=True, exist_ok=True)
+    nnUNet_splits_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # set environment variables
+    os.environ["prepdir"] = str(workdir / "nnUNet_preprocessed")
 
     # extract scripts
     with zipfile.ZipFile(scripts_dir / "code.zip", 'r') as zf:
@@ -70,6 +80,10 @@ def main():
     ]
     check_call(cmd)
 
+    # save cross-validation splits to disk
+    with open(nnUNet_splits_path, "w") as fp:
+        json.dump(nnunet_splits, fp)
+
     # Convert MHA Archive to nnU-Net Raw Data Archive
     # Also, we combine the provided human-expert annotations with the AI-derived annotations.
     print("Preprocessing data...")
@@ -86,30 +100,32 @@ def main():
     if args.nnUNet_n_proc_DA is not None:
         os.environ["nnUNet_n_proc_DA"] = str(args.nnUNet_n_proc_DA)
 
-    folds = range(1)  # range(5) for 5-fold cross-validation
+    folds = range(5)  # range(5) for 5-fold cross-validation
     for fold in folds:
         print(f"Training fold {fold}...")
         cmd = [
             "python", (local_scripts_dir / "picai_baseline/src/picai_baseline/nnunet/training_docker/nnunet_wrapper.py").as_posix(),
-            "plan_train", "Task2203_picai_baseline", workdir.as_posix(),
+            "plan_train", str(taskname), workdir.as_posix(),
+            "--results", checkpoints_dir.as_posix(),
             "--trainer", "nnUNetTrainerV2_Loss_FL_and_CE_checkpoints",
             "--fold", str(fold),
+            "--custom_split", str(nnUNet_splits_path),
         ]
         check_call(cmd)
 
     # Export trained models
     for fold in folds:
-        src = workdir / f"results/nnUNet/3d_fullres/Task2203_picai_baseline/nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1/fold_{fold}/model_best.model"
-        dst = output_dir / f"picai_nnunet_gc_algorithm/results/nnUNet/3d_fullres/Task2201_picai_baseline/nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1/fold_{fold}/model_best.model"
+        src = checkpoints_dir / f"nnUNet/3d_fullres/{taskname}/nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1/fold_{fold}/model_best.model"
+        dst = output_dir / f"picai_nnunet_gc_algorithm/results/nnUNet/3d_fullres/{taskname}/nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1/fold_{fold}/model_best.model"
         dst.mkdir(parents=True, exist_ok=True)
         shutil.copy(src, dst)
 
-        src = workdir / f"results/nnUNet/3d_fullres/Task2203_picai_baseline/nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1/fold_{fold}/model_best.model.pkl"
-        dst = output_dir / f"picai_nnunet_gc_algorithm/results/nnUNet/3d_fullres/Task2201_picai_baseline/nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1/fold_{fold}/model_best.model.pkl"
+        src = checkpoints_dir / f"nnUNet/3d_fullres/{taskname}/nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1/fold_{fold}/model_best.model.pkl"
+        dst = output_dir / f"picai_nnunet_gc_algorithm/results/nnUNet/3d_fullres/{taskname}/nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1/fold_{fold}/model_best.model.pkl"
         shutil.copy(src, dst)
 
-    shutil.copy(workdir / "results/nnUNet/3d_fullres/Task2203_picai_baseline/nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1/plans.pkl",
-                output_dir / "picai_nnunet_gc_algorithm/results/nnUNet/3d_fullres/Task2201_picai_baseline/nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1/plans.pkl")
+    shutil.copy(checkpoints_dir / f"nnUNet/3d_fullres/{taskname}/nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1/plans.pkl",
+                output_dir / f"picai_nnunet_gc_algorithm/results/nnUNet/3d_fullres/{taskname}/nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1/plans.pkl")
 
 
 if __name__ == '__main__':
