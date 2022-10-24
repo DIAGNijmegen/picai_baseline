@@ -42,7 +42,25 @@ parser.add_argument("--imagesdir", type=str, default="images",
                     help="Path to the images, relative to --inputdir (default: /input/images)")
 parser.add_argument("--labelsdir", type=str, default="picai_labels",
                     help="Path to the labels, relative to --inputdir (root of picai_labels) (default: /input/picai_labels)")
+parser.add_argument("--spacing", type=float, nargs="+", required=False,
+                    help="Spacing to preprocess images to. Default: keep as-is.")
+parser.add_argument("--matrix_size", type=int, nargs="+", required=False,
+                    help="Matrix size to preprocess images to. Default: keep as-is.")
+parser.add_argument("--preprocessing_kwargs", type=str, required=False,
+                    help='Preprocessing kwargs to pass to the MHA2nnUNetConverter. " + \
+                         "E.g.: `{"crop_only": true}`. Must be valid json.')
 args, _ = parser.parse_known_args()
+
+# prepare preprocessing kwargs
+args.preprocessing_kwargs = json.loads(args.preprocessing_kwargs) if args.preprocessing_kwargs else {}
+if args.spacing:
+    if "spacing" in args.preprocessing_kwargs:
+        raise ValueError("Cannot specify both --spacing and --preprocessing_kwargs['spacing']")
+    args.preprocessing_kwargs["spacing"] = args.spacing
+if args.matrix_size:
+    if "matrix_size" in args.preprocessing_kwargs:
+        raise ValueError("Cannot specify both --matrix_size and --preprocessing_kwargs['matrix_size']")
+    args.preprocessing_kwargs["matrix_size"] = args.matrix_size
 
 # parse paths
 workdir = Path(args.workdir)
@@ -105,6 +123,7 @@ else:
         archive_dir=imagesdir,
         annotations_dir=annotations_dir,
         output_path=mha2nnunet_settings_path,
+        task=task,
     )
 
     # read mha2nnunet_settings
@@ -112,9 +131,7 @@ else:
         mha2nnunet_settings = json.load(fp)
 
     # note: modify preprocessing settings here
-    mha2nnunet_settings["dataset_json"]["task"] = task
-    # mha2nnunet_settings["preprocessing"]["matrix_size"] = [20, 256, 256]
-    # mha2nnunet_settings["preprocessing"]["spacing"] = [3.0, 0.5, 0.5]
+    mha2nnunet_settings["preprocessing"].update(args.preprocessing_kwargs)
 
     # save mha2nnunet_settings
     with open(mha2nnunet_settings_path, "w") as fp:
