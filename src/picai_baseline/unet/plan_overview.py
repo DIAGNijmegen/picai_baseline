@@ -14,7 +14,7 @@
 
 import json
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import SimpleITK as sitk
@@ -25,16 +25,12 @@ def main(
     preprocessed_data_path: Union[Path, str] = Path('/workdir/nnUNet_raw_data/Task2201_picai_baseline/'),
     overviews_path: Union[Path, str] = Path('/workdir/results/UNet/overviews/'),
     splits: Optional[Dict[str, List[str]]] = None,
+    excluded_cases: Tuple[str] = ("11475_1001499",)
 ):
     """Create overviews of the training data."""
 
     if splits is None:
         splits = nnunet_splits
-
-    # specify cases that should be excluded from the train and validation sets
-    excluded_cases = [
-        '11475_1001499'  # cannot be preprocessed with the default baseline U-Net preprocessing config
-    ]
 
     # create directory to store overviews
     overviews_path.mkdir(parents=True, exist_ok=True)
