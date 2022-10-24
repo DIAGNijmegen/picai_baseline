@@ -11,9 +11,20 @@ pytorch_estimator = PyTorch(
     role='SageMakerRole',
     instance_type='local',
     instance_count=1,
+    volume_size=1000,  # in GB
     framework_version='1.8.0',
     py_version='py36',
+    max_run=60*60*24*10,  # in seconds
+    # checkpoint_s3_uri='s3://....',  # optional
+    # checkpoint_local_path='/checkpoints/',
+    hyperparameters={
+        "workdir": "/tmp/",
+    }
 )
+
+# Note: local storage (to be used during training, will be removed afterwards), is located at /tmp
+# for SageMaker Training. For SageMaker Notebooks (classic) it's at /home/ec2-user/SageMaker/,
+# for SageMaker Training it's at /tmp/, and for SageMaker inference it's at /.
 
 # Train the estimator
 pytorch_estimator.fit(
