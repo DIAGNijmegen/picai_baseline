@@ -15,7 +15,6 @@
 import argparse
 import ast
 
-import numpy as np
 import torch
 from picai_baseline.unet.training_setup.augmentations.nnUNet_DA import \
     apply_augmentations
