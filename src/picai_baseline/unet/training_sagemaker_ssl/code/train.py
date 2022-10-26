@@ -19,7 +19,7 @@ import zipfile
 from pathlib import Path
 from subprocess import check_call
 
-from picai_baseline.splits.picai import nnunet_splits
+from picai_baseline.splits.picai_debug import nnunet_splits
 from picai_baseline.unet.plan_overview import main as plan_overview
 
 
