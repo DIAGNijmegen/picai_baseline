@@ -47,7 +47,12 @@ parser.add_argument("--matrix_size", type=int, nargs="+", required=False,
 parser.add_argument("--preprocessing_kwargs", type=str, required=False,
                     help='Preprocessing kwargs to pass to the MHA2nnUNetConverter. " + \
                          "E.g.: `{"crop_only": true}`. Must be valid json.')
-args, _ = parser.parse_known_args()
+try:
+    args = parser.parse_args()
+except Exception as e:
+    print(f"Parsing all arguments failed: {e}")
+    print("Retrying with only the known arguments...")
+    args, _ = parser.parse_known_args()
 
 # prepare preprocessing kwargs
 args.preprocessing_kwargs = json.loads(args.preprocessing_kwargs) if args.preprocessing_kwargs else {}
