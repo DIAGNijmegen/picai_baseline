@@ -13,13 +13,14 @@
 #  limitations under the License.
 
 import json
-import numpy as np
-import monai
-import torch
 from collections import OrderedDict
+from pathlib import Path
+
+import monai
+import numpy as np
+import torch
 from batchgenerators.dataloading.data_loader import DataLoader
 from monai.transforms import Compose, EnsureType
-
 from picai_baseline.unet.training_setup.image_reader import SimpleITKDataset
 
 
@@ -74,9 +75,9 @@ def prepare_datagens(args, fold_id):
     """Load data sheets --> Create datasets --> Create data loaders"""
 
     # load datasheets
-    with open(args.overviews_dir+'PI-CAI_train-fold-'+str(fold_id)+'.json') as fp:
+    with open(Path(args.overviews_dir) / f'PI-CAI_train-fold-{fold_id}.json') as fp:
         train_json = json.load(fp)
-    with open(args.overviews_dir+'PI-CAI_val-fold-'+str(fold_id)+'.json') as fp:
+    with open(Path(args.overviews_dir) / f'PI-CAI_val-fold-{fold_id}.json') as fp:
         valid_json = json.load(fp)
 
     # load paths to images and labels

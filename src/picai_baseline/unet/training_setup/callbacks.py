@@ -14,6 +14,7 @@
 
 import os
 import time
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -27,10 +28,10 @@ from scipy.ndimage import gaussian_filter
 def resume_or_restart_training(model, optimizer, device, args, fold_id):
     """Resume/restart training, based on whether checkpoint exists"""
 
-    weights_file = args.weights_dir + args.model_type + '_F' + str(fold_id) + ".pt"
-    metrics_file = args.weights_dir + args.model_type + '_F' + str(fold_id) + "_metrics.xlsx"
+    weights_file = Path(args.weights_dir) / f"{args.model_type}_F{fold_id}.pt"
+    metrics_file = Path(args.weights_dir) / f"{args.model_type}_F{fold_id}_metrics.xlsx"
 
-    if bool(args.resume_training) & os.path.isfile(weights_file):
+    if bool(args.resume_training) and weights_file.is_file():
         print("Loading Weights From:", weights_file)
         checkpoint = torch.load(weights_file)
 
@@ -41,7 +42,7 @@ def resume_or_restart_training(model, optimizer, device, args, fold_id):
 
         # load train-time metrics from interrupted run
         tracking_metrics = {}
-        if os.path.isfile(metrics_file):
+        if metrics_file.is_file():
 
             saved_metrics = pd.read_excel(metrics_file, engine='openpyxl')
             all_epochs = (saved_metrics['epoch'].values).tolist()
@@ -208,8 +209,8 @@ def validate_model(model, optimizer, valid_gen, args, tracking_metrics, device, 
     # create target folder and save exports sheet
     os.makedirs(args.weights_dir, exist_ok=True)
 
-    metricsData.to_excel(args.weights_dir + args.model_type + '_F' + str(f)
-                         + '_metrics.xlsx', encoding='utf-8', index=False)
+    metrics_file = Path(args.weights_dir) / f"{args.model_type}_F{f}_metrics.xlsx"
+    metricsData.to_excel(metrics_file, encoding='utf-8', index=False)
 
     writer.add_scalar("valid_auroc",   valid_metrics.auroc, epoch+1)
     writer.add_scalar("valid_ap",      valid_metrics.AP,    epoch+1)
@@ -224,9 +225,12 @@ def validate_model(model, optimizer, valid_gen, args, tracking_metrics, device, 
         tracking_metrics['best_metric'] = valid_metrics.score
         tracking_metrics['best_metric_epoch'] = epoch + 1
         if bool(args.export_best_model):
-            torch.save({'epoch':                epoch,
-                        'model_state_dict':     model.state_dict(),
-                        'optimizer_state_dict': optimizer.state_dict()},
-                       args.weights_dir + args.model_type + '_F' + str(f) + ".pt")
+            weights_file = Path(args.weights_dir) / f"{args.model_type}_F{f}.pt"
+
             print("Validation Ranking Score Improved! Saving New Best Model", flush=True)
+            torch.save({
+                'epoch': epoch,
+                'model_state_dict': model.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict()
+            }, weights_file)
     return model, optimizer, valid_gen, tracking_metrics, writer
