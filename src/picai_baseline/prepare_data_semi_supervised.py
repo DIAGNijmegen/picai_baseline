@@ -85,7 +85,8 @@ nnUNet_splits_path = nnUNet_task_dir / "splits.json"
 def preprocess_picai_annotation(lbl: sitk.Image) -> sitk.Image:
     """Binarize the granular ISUP ≥ 2 annotations"""
     lbl_arr = sitk.GetArrayFromImage(lbl)
-
+    mha2nnunet_settings["preprocessing"]["spacing"] = [3.0, 0.5, 0.5]
+    mha2nnunet_settings["preprocessing"]["matrix_size"] = [20, 256, 256]
     # convert granular PI-CAI csPCa annotation to binary csPCa annotation
     lbl_arr = (lbl_arr >= 1).astype('uint8')
 
