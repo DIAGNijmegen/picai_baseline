@@ -40,7 +40,7 @@ def main(
 
         # iterate over train and validation splits
         for split, nnunet_split in nnunet_fold.items():
-            print(f"Preparing fold {fold}..")
+            print(f"Preparing fold {fold} ({split})..")
 
             # initialize list of fields to collect for each split of each fold
             overview = {

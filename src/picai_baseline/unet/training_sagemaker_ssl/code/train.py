@@ -93,7 +93,7 @@ def main():
         "python", (local_scripts_dir / "picai_baseline/src/picai_baseline/unet/train.py").as_posix(),
         "--weights_dir", (checkpoints_dir / "results/UNet/weights_semisupervised/").as_posix(),
         "--overviews_dir", (checkpoints_dir / "results/UNet/overviews/").as_posix(),
-        "--folds", " ".join(map(str, folds)),
+        "--folds", *[str(fold) for fold in folds],
         "--max_threads", "6",
         "--enable_da", "1",
         "--num_epochs", "2",  # 250 for baseline U-Net

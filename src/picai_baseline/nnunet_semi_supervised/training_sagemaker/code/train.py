@@ -45,11 +45,11 @@ def main(taskname="Task2203_picai_baseline"):
     output_dir = Path(args.outputdir)
     scripts_dir = Path(args.scriptsdir)
     checkpoints_dir = Path(args.checkpointsdir)
-    nnUNet_splits_path = workdir / f"nnUNet_raw_data/{taskname}/splits.json"
+    splits_path = workdir / f"splits/{taskname}/splits.json"
 
     workdir.mkdir(parents=True, exist_ok=True)
     output_dir.mkdir(parents=True, exist_ok=True)
-    nnUNet_splits_path.parent.mkdir(parents=True, exist_ok=True)
+    splits_path.parent.mkdir(parents=True, exist_ok=True)
 
     # set environment variables
     os.environ["prepdir"] = str(workdir / "nnUNet_preprocessed")
@@ -81,7 +81,7 @@ def main(taskname="Task2203_picai_baseline"):
     check_call(cmd)
 
     # save cross-validation splits to disk
-    with open(nnUNet_splits_path, "w") as fp:
+    with open(splits_path, "w") as fp:
         json.dump(nnunet_splits, fp)
 
     # Convert MHA Archive to nnU-Net Raw Data Archive
@@ -109,7 +109,7 @@ def main(taskname="Task2203_picai_baseline"):
             "--results", checkpoints_dir.as_posix(),
             "--trainer", "nnUNetTrainerV2_Loss_FL_and_CE_checkpoints",
             "--fold", str(fold),
-            "--custom_split", str(nnUNet_splits_path),
+            "--custom_split", str(splits_path),
         ]
         check_call(cmd)
 
