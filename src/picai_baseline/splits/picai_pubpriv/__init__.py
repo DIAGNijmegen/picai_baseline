@@ -67,7 +67,7 @@ marksheet = pd.read_csv(marksheet_path, dtype=str, index_col=0)
 # list of studies for training and validation
 subject_list_trainval = marksheet.apply(lambda row: f"{row.patient_id}_{row.study_id}", axis=1)
 patient_list_trainval = get_patient_list(subject_list_trainval, unique=True)
-print(f"Have {len(subject_list_trainval)} studies for training and validation" + 
+print(f"Have {len(subject_list_trainval)} studies for training and validation" +
       f" ({len(patient_list_trainval)} patients)")
 
 # sort lists for reproducibility
