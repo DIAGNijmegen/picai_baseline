@@ -93,6 +93,7 @@ def main(taskname="Task2203_picai_baseline"):
         "--workdir", workdir.as_posix(),
         "--imagesdir", images_dir.as_posix(),
         "--labelsdir", labels_dir.as_posix(),
+        "--preprocessing_kwargs", '{"physical_size": [81.0, 192.0, 192.0], "crop_only": true}',
     ]
     check_call(cmd)
 
