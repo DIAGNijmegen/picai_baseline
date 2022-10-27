@@ -12,9 +12,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-import json
-from pathlib import Path
-
 from picai_baseline.splits import subject_list_annotated
 from picai_baseline.splits.picai import (nnunet_splits, train_splits,
                                          valid_splits)
