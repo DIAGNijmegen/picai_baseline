@@ -35,6 +35,7 @@ def main(taskname="Task2203_picai_baseline"):
     parser.add_argument('--outputdir', type=str, default=os.environ.get('SM_MODEL_DIR', "/output"))
     parser.add_argument('--checkpointsdir', type=str, default="/checkpoints")
     parser.add_argument('--nnUNet_n_proc_DA', type=int, default=None)
+    parser.add_argument('--nnUNet_tf', type=int, default=4, help="Number of preprocessing threads for full images")
 
     args, _ = parser.parse_known_args()
 
@@ -100,6 +101,8 @@ def main(taskname="Task2203_picai_baseline"):
     # Train models
     if args.nnUNet_n_proc_DA is not None:
         os.environ["nnUNet_n_proc_DA"] = str(args.nnUNet_n_proc_DA)
+    if args.nnUNet_tf is not None:
+        os.environ["nnUNet_tf"] = str(args.nnUNet_tf)
 
     folds = range(5)  # range(5) for 5-fold cross-validation
     for fold in folds:
