@@ -158,7 +158,7 @@ if nnUNet_splits_path.exists():
 else:
     # save cross-validation splits to disk
     with open(nnUNet_splits_path, "w") as fp:
-        json.dump(nnunet_splits, fp)
+        json.dump(splits, fp)
     print(f"Saved cross-validation splits to {nnUNet_splits_path}")
 
 print("Finished.")
