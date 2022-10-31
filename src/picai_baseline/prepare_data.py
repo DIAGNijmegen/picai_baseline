@@ -22,7 +22,10 @@ from picai_prep import MHA2nnUNetConverter
 from picai_prep.examples.mha2nnunet.picai_archive import \
     generate_mha2nnunet_settings
 
-from picai_baseline.splits.picai_nnunet import nnunet_splits
+from picai_baseline.splits.picai_nnunet import \
+    nnunet_splits as picai_pub_splits
+from picai_baseline.splits.picai_pubpriv_nnunet import \
+    nnunet_splits as picai_pubpriv_splits
 
 """
 Script to prepare PI-CAI data into the nnUNet raw data format
@@ -47,6 +50,8 @@ parser.add_argument("--matrix_size", type=int, nargs="+", required=False,
 parser.add_argument("--preprocessing_kwargs", type=str, required=False,
                     help='Preprocessing kwargs to pass to the MHA2nnUNetConverter. " + \
                          "E.g.: `{"crop_only": true}`. Must be valid json.')
+parser.add_argument("--splits", type=str, default="picai_pub_nnunet",
+                    help="Splits to save for cross-validation. Available: picai_pub_nnunet, picai_pubpriv_nnunet.")
 try:
     args = parser.parse_args()
 except Exception as e:
@@ -64,6 +69,12 @@ if args.matrix_size:
     if "matrix_size" in args.preprocessing_kwargs:
         raise ValueError("Cannot specify both --matrix_size and --preprocessing_kwargs['matrix_size']")
     args.preprocessing_kwargs["matrix_size"] = args.matrix_size
+
+# select splits
+splits = {
+    "picai_pub_nnunet": picai_pub_splits,
+    "picai_pubpriv_nnunet": picai_pubpriv_splits,
+}[args.splits]
 
 # parse paths
 workdir = Path(args.workdir)
