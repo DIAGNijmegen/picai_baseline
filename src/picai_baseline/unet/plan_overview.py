@@ -14,7 +14,7 @@
 
 import json
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Union
 
 import numpy as np
 import SimpleITK as sitk
@@ -25,7 +25,6 @@ def main(
     preprocessed_data_path: Union[Path, str] = Path('/workdir/nnUNet_raw_data/Task2201_picai_baseline/'),
     overviews_path: Union[Path, str] = Path('/workdir/results/UNet/overviews/'),
     splits: Optional[Dict[str, List[str]]] = None,
-    excluded_cases: Tuple[str] = ("11475_1001499",)
 ):
     """Create overviews of the training data."""
 
@@ -56,8 +55,9 @@ def main(
             for subject_id in nnunet_split:
                 patient_id, study_id = subject_id.split('_')
 
-                # skip excluded case(s)
-                if subject_id in excluded_cases:
+                # skip cases where preprocessing failed
+                if not (preprocessed_data_path / 'labelsTr' / f'{subject_id}.nii.gz').exists():
+                    print(f"Skipping {subject_id}, case not found (likely because preprocessing failed)!")
                     continue
 
                 # load annotation
