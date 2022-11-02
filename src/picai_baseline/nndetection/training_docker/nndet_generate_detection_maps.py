@@ -12,7 +12,7 @@ from picai_prep.data_utils import atomic_image_write
 print = functools.partial(print, flush=True)
 
 
-def boxes2det(in_dir_pred, out_dir_det, target_label=None, threshold=0.0, min_num_voxels=10, verbose=1):
+def boxes2det(in_dir_pred, out_dir_det, target_label=None, threshold=0.0, min_num_voxels=10, return_detection_maps=True, verbose=1):
     """
     Convert bounding boxes to non-overlapping detection maps
 
@@ -110,7 +110,8 @@ def boxes2det(in_dir_pred, out_dir_det, target_label=None, threshold=0.0, min_nu
         # save results
         atomic_image_write(instance_mask_itk, str(out_dir_det / f"{cid}_detection_map.nii.gz"))
         save_json(case_prediction_meta, out_dir_det / f"{cid}_boxes.json")
-        y_det[cid] = instance_mask_itk
+        if return_detection_maps:
+            y_det[cid] = instance_mask_itk
         prediction_meta[cid] = case_prediction_meta
 
     if verbose:
@@ -141,7 +142,8 @@ def main():
     boxes2det(
         in_dir_pred=args.input,
         out_dir_det=args.output,
-        target_label=args.target_label
+        target_label=args.target_label,
+        return_detection_maps=False,
     )
 
 
