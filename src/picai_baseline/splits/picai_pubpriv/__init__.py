@@ -62,7 +62,7 @@ folds = range(5)
 marksheet_path = "/path/to/pubpriv_training/v1/labels/clinical_information/marksheet.csv"
 
 # read marksheet
-marksheet = pd.read_csv(marksheet_path, dtype=str, index_col=0)
+marksheet = pd.read_csv(marksheet_path, dtype=str)
 
 # list of studies for training and validation
 subject_list_trainval = marksheet.apply(lambda row: f"{row.patient_id}_{row.study_id}", axis=1)
