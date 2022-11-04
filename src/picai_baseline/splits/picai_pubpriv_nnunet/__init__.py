@@ -12,26 +12,25 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+from copy import deepcopy
+
 from picai_baseline.splits import subject_list_annotated_pubpriv
 from picai_baseline.splits.picai_pubpriv import (nnunet_splits, train_splits,
                                                  valid_splits)
 
 # read dataset configurations
+train_splits = deepcopy(train_splits)  # copy to avoid modifying the original
 for fold, split in train_splits.items():
-    split['subject_list'] = [
-        subject_id for subject_id in split['subject_list']
-        if subject_id in subject_list_annotated_pubpriv
-    ]
+    split['subject_list'] = sorted(list(set(split['subject_list']) & set(subject_list_annotated_pubpriv)))
 
+valid_splits = deepcopy(valid_splits)  # copy to avoid modifying the original
 for fold, split in valid_splits.items():
-    split['subject_list'] = [
-        subject_id for subject_id in split['subject_list']
-        if subject_id in subject_list_annotated_pubpriv
-    ]
+    split['subject_list'] = sorted(list(set(split['subject_list']) & set(subject_list_annotated_pubpriv)))
 
+nnunet_splits = deepcopy(nnunet_splits)  # copy to avoid modifying the original
 for split in nnunet_splits:
-    split['train'] = [subject_id for subject_id in split['train'] if subject_id in subject_list_annotated_pubpriv]
-    split['val'] = [subject_id for subject_id in split['val'] if subject_id in subject_list_annotated_pubpriv]
+    split['train'] = sorted(list(set(split['train']) & set(subject_list_annotated_pubpriv)))
+    split['val'] = sorted(list(set(split['val']) & set(subject_list_annotated_pubpriv)))
 
 # expose dataset configurations
 __all__ = [

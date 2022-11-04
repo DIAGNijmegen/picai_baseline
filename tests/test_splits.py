@@ -1,4 +1,8 @@
+import json
+from pathlib import Path
+
 import pytest
+
 from picai_baseline.splits.picai import nnunet_splits as picai_nnunet_splits
 from picai_baseline.splits.picai import train_splits as picai_train_splits
 from picai_baseline.splits.picai import valid_splits as picai_valid_splits
@@ -20,13 +24,20 @@ from picai_baseline.splits.picai_pubpriv import \
     train_splits as picai_pubpriv_train_splits
 from picai_baseline.splits.picai_pubpriv import \
     valid_splits as picai_pubpriv_valid_splits
+from picai_baseline.splits.picai_pubpriv_nnunet import \
+    nnunet_splits as picai_pubpriv_nnunet_nnunet_splits
+from picai_baseline.splits.picai_pubpriv_nnunet import \
+    train_splits as picai_pubpriv_nnunet_train_splits
+from picai_baseline.splits.picai_pubpriv_nnunet import \
+    valid_splits as picai_pubpriv_nnunet_valid_splits
 
 
 @pytest.mark.parametrize("train_splits, valid_splits, nnunet_splits", [
     (picai_train_splits, picai_valid_splits, picai_nnunet_splits),
-    (picai_nnunet_train_splits, picai_nnunet_valid_splits, picai_nnunet_nnunet_splits),
     (picai_debug_train_splits, picai_debug_valid_splits, picai_debug_nnunet_splits),
+    (picai_nnunet_train_splits, picai_nnunet_valid_splits, picai_nnunet_nnunet_splits),
     (picai_pubpriv_train_splits, picai_pubpriv_valid_splits, picai_pubpriv_nnunet_splits),
+    (picai_pubpriv_nnunet_train_splits, picai_pubpriv_nnunet_valid_splits, picai_pubpriv_nnunet_nnunet_splits),
 ])
 def test_splits(train_splits, valid_splits, nnunet_splits):
     """Test that the splits are consistent and do not have overlap between validation folds."""
@@ -46,3 +57,22 @@ def test_splits(train_splits, valid_splits, nnunet_splits):
     for i in folds:
         assert set(train_splits[i]["subject_list"]) == set(nnunet_splits[i]["train"]), f"Found mismatch between train_splits and nnunet_splits in fold {i}!"
         assert set(valid_splits[i]["subject_list"]) == set(nnunet_splits[i]["val"]), f"Found mismatch between valid_splits and nnunet_splits in fold {i}!"
+
+
+@pytest.mark.parametrize("nnunet_splits, nnunet_splits_path", [
+    (picai_nnunet_splits, "src/picai_baseline/splits/picai/splits.json"),
+    (picai_debug_nnunet_splits, "src/picai_baseline/splits/picai_debug/splits.json"),
+    (picai_nnunet_nnunet_splits, "src/picai_baseline/splits/picai_nnunet/splits.json"),
+    (picai_pubpriv_nnunet_splits, "src/picai_baseline/splits/picai_pubpriv/splits.json"),
+    (picai_pubpriv_nnunet_nnunet_splits, "src/picai_baseline/splits/picai_pubpriv_nnunet/splits.json"),
+])
+def test_nnunet_precomputed_split(nnunet_splits, nnunet_splits_path):
+    """Test that the precomputed nnunet splits are consistent with the computed splits."""
+    path = Path(__file__).parent.parent / nnunet_splits_path
+    with open(path, "r") as f:
+        precomputed_nnunet_splits = json.load(f)
+    assert nnunet_splits == precomputed_nnunet_splits
+
+
+if __name__ == "__main__":
+    pytest.main([__file__])

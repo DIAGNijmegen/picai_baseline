@@ -16,12 +16,13 @@
 import argparse
 import json
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 
 def export_splits(
     train_splits: Optional[Dict[str, Any]] = None,
     valid_splits: Optional[Dict[str, Any]] = None,
+    nnunet_splits: Optional[List[Dict[str, List[str]]]] = None,
     output_folder: Optional[str] = None,
 ) -> None:
     """Export dataset configuration files to disk"""
@@ -48,6 +49,12 @@ def export_splits(
             print(f"Saving training fold {fold} with {len(ds_config['subject_list'])} cases to {path}")
             with open(path, "w") as fp:
                 json.dump(ds_config, fp, indent=4)
+
+    if nnunet_splits is not None:
+        path = output_folder / "splits.json"
+        print(f"Saving splits in nnUNet format to {path}")
+        with open(path, "w") as fp:
+            json.dump(nnunet_splits, fp, indent=4)
 
 
 subject_list_annotated = [
