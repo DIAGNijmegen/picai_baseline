@@ -2,6 +2,9 @@ import json
 from pathlib import Path
 
 import pytest
+
+from picai_baseline.splits import (subject_list_annotated,
+                                   subject_list_annotated_pubpriv)
 from picai_baseline.splits.picai import nnunet_splits as picai_nnunet_splits
 from picai_baseline.splits.picai import train_splits as picai_train_splits
 from picai_baseline.splits.picai import valid_splits as picai_valid_splits
@@ -71,6 +74,15 @@ def test_nnunet_precomputed_split(nnunet_splits, nnunet_splits_path):
     with open(path, "r") as f:
         precomputed_nnunet_splits = json.load(f)
     assert nnunet_splits == precomputed_nnunet_splits
+
+
+@pytest.mark.parametrize("subject_list, expected_number", [
+    (subject_list_annotated, 1295),
+    (subject_list_annotated_pubpriv, 8215),
+])
+def test_number_of_annotated_cases(subject_list, expected_number):
+    """Test that the number of annotated cases is as expected."""
+    assert len(subject_list) == expected_number, f"Expected {expected_number} annotated cases, but found {len(subject_list)}!"
 
 
 if __name__ == "__main__":
