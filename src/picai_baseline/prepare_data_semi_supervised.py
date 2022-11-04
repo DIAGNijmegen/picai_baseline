@@ -18,15 +18,14 @@ import os
 from pathlib import Path
 
 import SimpleITK as sitk
+from picai_baseline.splits.picai import nnunet_splits as picai_splits
+from picai_baseline.splits.picai_pubpriv import \
+    nnunet_splits as picai_pubpriv_splits
 from picai_prep import MHA2nnUNetConverter
 from picai_prep.data_utils import atomic_image_write
 from picai_prep.examples.mha2nnunet.picai_archive import \
     generate_mha2nnunet_settings
 from tqdm import tqdm
-
-from picai_baseline.splits.picai import nnunet_splits as picai_splits
-from picai_baseline.splits.picai_pubpriv import \
-    nnunet_splits as picai_pubpriv_splits
 
 """
 Script to prepare PI-CAI data into the nnUNet raw data format

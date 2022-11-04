@@ -2,7 +2,6 @@ import json
 from pathlib import Path
 
 import pytest
-
 from picai_baseline.splits.picai import nnunet_splits as picai_nnunet_splits
 from picai_baseline.splits.picai import train_splits as picai_train_splits
 from picai_baseline.splits.picai import valid_splits as picai_valid_splits

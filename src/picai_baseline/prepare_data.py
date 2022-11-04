@@ -18,14 +18,13 @@ import os
 from pathlib import Path
 
 import SimpleITK as sitk
-from picai_prep import MHA2nnUNetConverter
-from picai_prep.examples.mha2nnunet.picai_archive import \
-    generate_mha2nnunet_settings
-
 from picai_baseline.splits.picai_nnunet import \
     nnunet_splits as picai_pub_splits
 from picai_baseline.splits.picai_pubpriv_nnunet import \
     nnunet_splits as picai_pubpriv_splits
+from picai_prep import MHA2nnUNetConverter
+from picai_prep.examples.mha2nnunet.picai_archive import \
+    generate_mha2nnunet_settings
 
 """
 Script to prepare PI-CAI data into the nnUNet raw data format
