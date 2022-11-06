@@ -140,7 +140,8 @@ if __name__ == "__main__":
     parser.add_argument("--folds", type=int, nargs="+", default=list(range(5)),
                         help="Which folds to evaluate. Multiple folds can be evaluated at once. Default: " +
                              "0, 1, 2, 3, 4  (all)")
-    parser.add_argument("--predictions_folder", str, default=r"picai_pubtrain_predictions_{checkpoint}")
+    parser.add_argument("--predictions_folder", type=str, default=r"picai_pubtrain_predictions_{checkpoint}",
+                        help="Folder with nnU-Net softmax predictions.")
     parser.add_argument("--softmax_postprocessing_func", type=str, default="extract_lesion_candidates",
                         help="Function to post-process the softmax volumes. Default: extract lesion candidates " +
                              "using the Report-Guided Annotation repository. Use extract_lesion_candidates_cropped " +
