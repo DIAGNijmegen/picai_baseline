@@ -18,12 +18,16 @@ from pathlib import Path
 from typing import Callable, Optional, Union
 
 import numpy as np
-from picai_baseline.nnunet.softmax_export import \
-    convert_cropped_npz_to_original_nifty
-from picai_baseline.splits.picai_nnunet import valid_splits
 from picai_eval import evaluate_folder
 from picai_prep.preprocessing import crop_or_pad
 from report_guided_annotation import extract_lesion_candidates
+
+from picai_baseline.nnunet.softmax_export import \
+    convert_cropped_npz_to_original_nifty
+from picai_baseline.splits.picai_nnunet import \
+    valid_splits as picai_pub_valid_splits
+from picai_baseline.splits.picai_pubpriv_nnunet import \
+    valid_splits as picai_pubpriv_valid_splits
 
 try:
     import numpy.typing as npt
@@ -48,6 +52,8 @@ def evaluate(
     softmax_postprocessing_func: "Optional[Union[Callable[[npt.NDArray[np.float_]], npt.NDArray[np.float_]], str]]" = "extract_lesion_candidates",
     threshold: str = "dynamic",
     metrics_fn: str = "metrics-{checkpoint}-{threshold}.json",
+    splits: str = "picai_pub",
+    verbose: int = 2,
 ):
     # input validation
     workdir = Path(workdir)
@@ -56,11 +62,19 @@ def evaluate(
     else:
         task_dir = workdir / task_dir
 
+    # select splits
+    splits = {
+        "picai_pub": picai_pub_valid_splits,
+        "picai_pubpriv": picai_pubpriv_valid_splits,
+    }[args.splits]
+
     if isinstance(softmax_postprocessing_func, str):
         if softmax_postprocessing_func == "extract_lesion_candidates":
-            softmax_postprocessing_func = lambda pred: extract_lesion_candidates(pred, threshold=threshold)[0]
+            def softmax_postprocessing_func(pred):
+                return extract_lesion_candidates(pred, threshold=threshold)[0]
         elif softmax_postprocessing_func == "extract_lesion_candidates_cropped":
-            softmax_postprocessing_func = lambda pred: extract_lesion_candidates_cropped(pred, threshold=threshold)
+            def softmax_postprocessing_func(pred):
+                return extract_lesion_candidates_cropped(pred, threshold=threshold)
         else:
             raise ValueError(f"Unrecognised softmax_postprocessing_func: {softmax_postprocessing_func}")
 
@@ -76,18 +90,25 @@ def evaluate(
                 print(f"Metrics found at {metrics_path}, skipping..")
                 continue
 
+            original_softmax_prediction_paths = softmax_dir.glob("*.npz")
+
+            if verbose >= 2:
+                original_softmax_prediction_paths = list(original_softmax_prediction_paths)
+                print(f"Found {len(original_softmax_prediction_paths)} predictions (e.g., {original_softmax_prediction_paths[0:2]})")
+
             # pad raw npz predictions to their original extent
+            print("Converting nnU-Net predictions to original extent...")
             with Pool() as pool:
                 pool.map(
                     func=convert_cropped_npz_to_original_nifty,
-                    iterable=softmax_dir.glob("*.npz"),
+                    iterable=original_softmax_prediction_paths,
                 )
 
             # evaluate
             metrics = evaluate_folder(
                 y_det_dir=softmax_dir,
                 y_true_dir=workdir / "nnUNet_raw_data" / task / "labelsTr",
-                subject_list=valid_splits[fold]['subject_list'],
+                subject_list=splits[fold]['subject_list'],
                 pred_extensions=['_softmax.nii.gz'],
                 y_det_postprocess_func=softmax_postprocessing_func,
                 num_parallel_calls=5,
@@ -108,19 +129,26 @@ if __name__ == "__main__":
     parser.add_argument("--workdir", type=str, default="/workdir",
                         help="Path to the workdir where 'results' and 'nnUNet_raw_data' are stored. Default: /workdir")
     parser.add_argument("--task_dir", type=str, default="auto",
-                        help="Path to the task directory (relative to the workdir). Optional, will be constucted for default nnU-Net forlder structure")
+                        help="Path to the task directory (relative to the workdir). Optional, will be constucted " +
+                             "for default nnU-Net forlder structure")
     parser.add_argument("--checkpoints", type=str, nargs="+", default=["model_best"],
-                        help="Which checkpoints to evaluate. Multiple checkpoints can be passed at once. Default: model_best")
+                        help="Which checkpoints to evaluate. Multiple checkpoints can be passed at once. Default: " +
+                             "model_best")
     parser.add_argument("--folds", type=int, nargs="+", default=list(range(5)),
-                        help="Which folds to evaluate. Multiple folds can be evaluated at once. Default: 0, 1, 2, 3, 4  (all)")
+                        help="Which folds to evaluate. Multiple folds can be evaluated at once. Default: " +
+                             "0, 1, 2, 3, 4  (all)")
     parser.add_argument("--softmax_postprocessing_func", type=str, default="extract_lesion_candidates",
-                        help="Function to post-process the softmax volumes. Default: extract lesion candidates using the Report-Guided Annotation repository. " + \
-                             "Use extract_lesion_candidates_cropped to set all predictions outside the central 20x384x384 voxels to zero.")
+                        help="Function to post-process the softmax volumes. Default: extract lesion candidates " +
+                             "using the Report-Guided Annotation repository. Use extract_lesion_candidates_cropped " +
+                             "to set all predictions outside the central 20x384x384 voxels to zero.")
     parser.add_argument("--threshold", type=str, default="dynamic",
-                        help="Threshold for lesion extraction from softmax predictions. " + \
+                        help="Threshold for lesion extraction from softmax predictions. " +
                              "Use dynamic-fast for quicker evaluation at almost equal performance.")
     parser.add_argument("--metrics_fn", type=str, default=r"metrics-{checkpoint}-{threshold}.json",
-                        help=r"Filename to save metrics to. May contain {checkpoint} and {threshold} which are auto-filled. Default: metrics-{checkpoint}-{threshold}.json")
+                        help=r"Filename to save metrics to. May contain {checkpoint} and {threshold} which are " +
+                             r"auto-filled. Default: metrics-{checkpoint}-{threshold}.json")
+    parser.add_argument("--splits", type=str, default="picai_pub",
+                        help="Splits for cross-validation. Available: picai_pub, picai_pubpriv.")
     args = parser.parse_args()
 
     # evaluate
@@ -134,4 +162,5 @@ if __name__ == "__main__":
         softmax_postprocessing_func=args.softmax_postprocessing_func,
         threshold=args.threshold,
         metrics_fn=args.metrics_fn,
+        splits=args.splits,
     )
