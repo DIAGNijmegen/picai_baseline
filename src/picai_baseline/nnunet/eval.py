@@ -24,10 +24,13 @@ from report_guided_annotation import extract_lesion_candidates
 
 from picai_baseline.nnunet.softmax_export import \
     convert_cropped_npz_to_original_nifty
+from picai_baseline.splits.picai import valid_splits as picai_pub_valid_splits
 from picai_baseline.splits.picai_nnunet import \
-    valid_splits as picai_pub_valid_splits
-from picai_baseline.splits.picai_pubpriv_nnunet import \
+    valid_splits as picai_pub_nnunet_valid_splits
+from picai_baseline.splits.picai_pubpriv import \
     valid_splits as picai_pubpriv_valid_splits
+from picai_baseline.splits.picai_pubpriv_nnunet import \
+    valid_splits as picai_pubpriv_nnunet_valid_splits
 
 try:
     import numpy.typing as npt
@@ -63,11 +66,14 @@ def evaluate(
     else:
         task_dir = workdir / task_dir
 
-    # select splits
-    splits = {
-        "picai_pub": picai_pub_valid_splits,
-        "picai_pubpriv": picai_pubpriv_valid_splits,
-    }[args.splits]
+    if isinstance(splits, str):
+        # select splits
+        splits = {
+            "picai_pub": picai_pub_valid_splits,
+            "picai_pubpriv": picai_pubpriv_valid_splits,
+            "picai_pub_nnunet": picai_pub_nnunet_valid_splits,
+            "picai_pubpriv_nnunet": picai_pubpriv_nnunet_valid_splits,
+        }[args.splits]
 
     if isinstance(softmax_postprocessing_func, str):
         if softmax_postprocessing_func == "extract_lesion_candidates":
@@ -153,7 +159,8 @@ if __name__ == "__main__":
                         help=r"Filename to save metrics to. May contain {checkpoint} and {threshold} which are " +
                              r"auto-filled. Default: metrics-{checkpoint}-{threshold}.json")
     parser.add_argument("--splits", type=str, default="picai_pub",
-                        help="Splits for cross-validation. Available: picai_pub, picai_pubpriv.")
+                        help="Splits for cross-validation. Available: picai_pub, picai_pub_nnunet, picai_pubpriv, " +
+                             "picai_pubpriv_nnunet.")
     args = parser.parse_args()
 
     # evaluate
