@@ -53,6 +53,7 @@ def evaluate(
     threshold: str = "dynamic",
     metrics_fn: str = "metrics-{checkpoint}-{threshold}.json",
     splits: str = "picai_pub",
+    predictions_folder: str = r"picai_pubtrain_predictions_{checkpoint}",
     verbose: int = 2,
 ):
     # input validation
@@ -82,7 +83,8 @@ def evaluate(
         print(f"Evaluating fold {fold}...")
 
         for checkpoint in checkpoints:
-            softmax_dir = task_dir / f"{trainer}__nnUNetPlansv2.1" / f"fold_{fold}/picai_pubtrain_predictions_{checkpoint}"
+            pred_folder = predictions_folder.replace(r"{checkpoint}", checkpoint)
+            softmax_dir = task_dir / f"{trainer}__nnUNetPlansv2.1" / f"fold_{fold}" / pred_folder
             metrics_fn = metrics_fn.replace(r"{checkpoint}", checkpoint).replace(r"{threshold}", threshold)
             metrics_path = softmax_dir.parent / metrics_fn
 
@@ -93,6 +95,7 @@ def evaluate(
             original_softmax_prediction_paths = softmax_dir.glob("*.npz")
 
             if verbose >= 2:
+                print(f"Predictions folder: {softmax_dir}")
                 original_softmax_prediction_paths = list(original_softmax_prediction_paths)
                 print(f"Found {len(original_softmax_prediction_paths)} predictions (e.g., {original_softmax_prediction_paths[0:2]})")
 
@@ -137,6 +140,7 @@ if __name__ == "__main__":
     parser.add_argument("--folds", type=int, nargs="+", default=list(range(5)),
                         help="Which folds to evaluate. Multiple folds can be evaluated at once. Default: " +
                              "0, 1, 2, 3, 4  (all)")
+    parser.add_argument("--predictions_folder", str, default=r"picai_pubtrain_predictions_{checkpoint}")
     parser.add_argument("--softmax_postprocessing_func", type=str, default="extract_lesion_candidates",
                         help="Function to post-process the softmax volumes. Default: extract lesion candidates " +
                              "using the Report-Guided Annotation repository. Use extract_lesion_candidates_cropped " +
@@ -163,4 +167,5 @@ if __name__ == "__main__":
         threshold=args.threshold,
         metrics_fn=args.metrics_fn,
         splits=args.splits,
+        predictions_folder=args.predictions_folder,
     )
