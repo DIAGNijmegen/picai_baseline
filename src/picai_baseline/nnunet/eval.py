@@ -90,7 +90,7 @@ def evaluate(
         for checkpoint in checkpoints:
             pred_folder = predictions_folder.replace(r"{checkpoint}", checkpoint)
             softmax_dir = task_dir / f"{trainer}__nnUNetPlansv2.1" / f"fold_{fold}" / pred_folder
-            metrics_fn = metrics_fn.replace(r"{checkpoint}", checkpoint).replace(r"{threshold}", threshold)
+            metrics_fn = metrics_fn.replace(r"{checkpoint}", checkpoint).replace(r"{threshold}", threshold).replace("{fold}", str(fold))
             metrics_path = softmax_dir.parent / metrics_fn
 
             if metrics_path.exists():
