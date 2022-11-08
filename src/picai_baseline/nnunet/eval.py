@@ -53,7 +53,7 @@ def evaluate(
     folds: str = list(range(5)),
     softmax_postprocessing_func: "Optional[Union[Callable[[npt.NDArray[np.float_]], npt.NDArray[np.float_]], str]]" = "extract_lesion_candidates",
     threshold: str = "dynamic",
-    metrics_fn: str = "metrics-{checkpoint}-{threshold}.json",
+    metrics_fn: str = r"metrics-{checkpoint}-{threshold}.json",
     splits: str = "picai_pub",
     predictions_folder: str = r"picai_pubtrain_predictions_{checkpoint}",
     verbose: int = 2,
@@ -90,8 +90,7 @@ def evaluate(
         for checkpoint in checkpoints:
             pred_folder = predictions_folder.replace(r"{checkpoint}", checkpoint)
             softmax_dir = task_dir / f"{trainer}__nnUNetPlansv2.1" / f"fold_{fold}" / pred_folder
-            metrics_fn = metrics_fn.replace(r"{checkpoint}", checkpoint).replace(r"{threshold}", threshold).replace("{fold}", str(fold))
-            metrics_path = softmax_dir.parent / metrics_fn
+            metrics_path = softmax_dir.parent / metrics_fn.replace(r"{checkpoint}", checkpoint).replace(r"{threshold}", threshold).replace("{fold}", str(fold))
 
             if metrics_path.exists():
                 print(f"Metrics found at {metrics_path}, skipping..")
