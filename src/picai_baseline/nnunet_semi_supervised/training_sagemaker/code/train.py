@@ -114,7 +114,7 @@ def main(taskname="Task2203_picai_baseline"):
             "--trainer", "nnUNetTrainerV2_Loss_FL_and_CE_checkpoints",
             "--fold", str(fold),
             "--custom_split", str(splits_path),
-            "--disable_postprocessing_on_folds",
+            "--kwargs='--disable_postprocessing_on_folds'",
         ]
         check_call(cmd)
 
