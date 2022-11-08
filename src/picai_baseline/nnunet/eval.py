@@ -18,10 +18,6 @@ from pathlib import Path
 from typing import Callable, Optional, Union
 
 import numpy as np
-from picai_eval import evaluate_folder
-from picai_prep.preprocessing import crop_or_pad
-from report_guided_annotation import extract_lesion_candidates
-
 from picai_baseline.nnunet.softmax_export import \
     convert_cropped_npz_to_original_nifty
 from picai_baseline.splits.picai import valid_splits as picai_pub_valid_splits
@@ -31,6 +27,9 @@ from picai_baseline.splits.picai_pubpriv import \
     valid_splits as picai_pubpriv_valid_splits
 from picai_baseline.splits.picai_pubpriv_nnunet import \
     valid_splits as picai_pubpriv_nnunet_valid_splits
+from picai_eval import evaluate_folder
+from picai_prep.preprocessing import crop_or_pad
+from report_guided_annotation import extract_lesion_candidates
 
 try:
     import numpy.typing as npt
@@ -154,8 +153,9 @@ if __name__ == "__main__":
                              "to set all predictions outside the central 20x384x384 voxels to zero.")
     parser.add_argument("--threshold", type=str, default="dynamic",
                         help="Threshold for lesion extraction from softmax predictions. " +
-                             "Use dynamic-fast for quicker evaluation at almost equal performance.")
-    parser.add_argument("--metrics_fn", type=str, default=r"metrics-{checkpoint}-{threshold}.json",
+                             "Use dynamic-fast for quicker evaluation at almost equal performance." +
+                              "Default: dynamic.")
+    parser.add_argument("--metrics_fn", type=str, default=r"metrics-{checkpoint}-{fold}-{threshold}.json",
                         help=r"Filename to save metrics to. May contain {checkpoint} and {threshold} which are " +
                              r"auto-filled. Default: metrics-{checkpoint}-{threshold}.json")
     parser.add_argument("--splits", type=str, default="picai_pub",
