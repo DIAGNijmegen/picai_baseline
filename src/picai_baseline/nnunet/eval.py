@@ -96,6 +96,8 @@ def evaluate(
             if metrics_path.exists():
                 print(f"Metrics found at {metrics_path}, skipping..")
                 continue
+            else:
+                print(f"Metrics will be saved to {metrics_path}.")
 
             original_softmax_prediction_paths = softmax_dir.glob("*.npz")
 
