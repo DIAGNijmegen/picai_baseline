@@ -21,3 +21,4 @@ numpy>=1.21.1
 picai_eval
 picai_prep
 picai_baseline
+urllib3>=1.26.0
