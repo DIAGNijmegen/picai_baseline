@@ -1,5 +1,5 @@
 # Adapted from https://github.com/DIAGNijmegen/diag-nnunet/blob/master/Dockerfile
-FROM nvcr.io/nvidia/pytorch:20.12-py3
+FROM nvcr.io/nvidia/pytorch:21.12-py3
 
 RUN groupadd -r user && useradd -m --no-log-init -r -g user user
 
