@@ -1,5 +1,5 @@
 # Adapted from https://github.com/DIAGNijmegen/diag-nnunet/blob/master/Dockerfile
-FROM nvcr.io/nvidia/pytorch:21.12-py3
+FROM nvcr.io/nvidia/pytorch:20.12-py3
 
 RUN groupadd -r user && useradd -m --no-log-init -r -g user user
 
@@ -48,6 +48,11 @@ COPY ./consolidate.py /opt/code/nnDetection/scripts/consolidate.py
 COPY ./predict.py /opt/code/nnDetection/scripts/predict.py
 COPY ./utils.py /opt/code/nnDetection/scripts/utils.py
 RUN FORCE_CUDA=1 pip3 install -v -e /opt/code/nnDetection
+
+# updating requests and urllib3 fixed compatibility
+RUN pip install numpy \
+  && pip install --upgrade requests \
+  && pip install --upgrade urllib3
 
 # Patch shutil copy operations that don't work on SOL
 COPY shutil_sol.py /tmp/shutil_sol.py
