@@ -110,18 +110,23 @@ def main(taskname="Task2203_picai_baseline"):
 
     # Export trained models
     for fold in folds:
-        src = checkpoints_dir / f"nnUNet/3d_fullres/{taskname}/nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1/fold_{fold}/model_best.model"
-        dst = output_dir / f"picai_nnunet_gc_algorithm/results/nnUNet/3d_fullres/{taskname}/nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1/fold_{fold}/model_best.model"
+        src = checkpoints_dir / f"nnDet/{taskname}/RetinaUNetV001_D3V001_3d/consolidated/model_fold{fold}.ckpt"
+        dst = output_dir / f"picai_nndetection_gc_algorithm/results/nnDet/{taskname}/RetinaUNetV001_D3V001_3d/consolidated/model_fold{fold}.ckpt"
         dst.mkdir(parents=True, exist_ok=True)
         shutil.copy(src, dst)
 
-        src = checkpoints_dir / f"nnUNet/3d_fullres/{taskname}/nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1/fold_{fold}/model_best.model.pkl"
-        dst = output_dir / f"picai_nnunet_gc_algorithm/results/nnUNet/3d_fullres/{taskname}/nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1/fold_{fold}/model_best.model.pkl"
-        shutil.copy(src, dst)
-
-    shutil.copy(checkpoints_dir / f"nnUNet/3d_fullres/{taskname}/nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1/plans.pkl",
-                output_dir / f"picai_nnunet_gc_algorithm/results/nnUNet/3d_fullres/{taskname}/nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1/plans.pkl")
-
+    shutil.copy(
+        checkpoints_dir / f"nnDet/{taskname}/RetinaUNetV001_D3V001_3d/consolidated/config.yaml",
+        output_dir / f"picai_nndetection_gc_algorithm/results/nnDet/{taskname}/RetinaUNetV001_D3V001_3d/consolidated/config.yaml",
+    )
+    shutil.copy(
+        checkpoints_dir / f"nnDet/{taskname}/RetinaUNetV001_D3V001_3d/consolidated/plan_inference.pkl",
+        output_dir / f"picai_nndetection_gc_algorithm/results/nnDet/{taskname}/RetinaUNetV001_D3V001_3d/consolidated/plan_inference.pkl",
+    )
+    shutil.copy(
+        workdir / f"nnDet_raw_data/{taskname}/dataset.json",
+        output_dir / f"picai_nndetection_gc_algorithm/results/nnDet/{taskname}/dataset.json",
+    )
 
 if __name__ == '__main__':
     main()
