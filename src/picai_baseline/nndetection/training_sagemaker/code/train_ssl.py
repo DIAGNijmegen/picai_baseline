@@ -109,23 +109,26 @@ def main(taskname="Task2203_picai_baseline"):
         check_call(cmd)
 
     # Export trained models
+    output_task_dir = output_dir / "picai_nndetection_gc_algorithm/results/nnDet" / taskname
+    consolidated_model_dir = output_task_dir / "RetinaUNetV001_D3V001_3d/consolidated"
+    consolidated_model_dir.mkdir(parents=True, exist_ok=True)
+    input_consolidated_model_dir = checkpoints_dir / f"nnDet/{taskname}/RetinaUNetV001_D3V001_3d/consolidated"
     for fold in folds:
         src = checkpoints_dir / f"nnDet/{taskname}/RetinaUNetV001_D3V001_3d/consolidated/model_fold{fold}.ckpt"
-        dst = output_dir / f"picai_nndetection_gc_algorithm/results/nnDet/{taskname}/RetinaUNetV001_D3V001_3d/consolidated/model_fold{fold}.ckpt"
-        dst.mkdir(parents=True, exist_ok=True)
+        dst = consolidated_model_dir / f"model_fold{fold}.ckpt"
         shutil.copy(src, dst)
 
     shutil.copy(
-        checkpoints_dir / f"nnDet/{taskname}/RetinaUNetV001_D3V001_3d/consolidated/config.yaml",
-        output_dir / f"picai_nndetection_gc_algorithm/results/nnDet/{taskname}/RetinaUNetV001_D3V001_3d/consolidated/config.yaml",
+        input_consolidated_model_dir / "config.yaml",
+        consolidated_model_dir / "config.yaml",
     )
     shutil.copy(
-        checkpoints_dir / f"nnDet/{taskname}/RetinaUNetV001_D3V001_3d/consolidated/plan_inference.pkl",
-        output_dir / f"picai_nndetection_gc_algorithm/results/nnDet/{taskname}/RetinaUNetV001_D3V001_3d/consolidated/plan_inference.pkl",
+        input_consolidated_model_dir / "plan_inference.pkl",
+        consolidated_model_dir / "plan_inference.pkl",
     )
     shutil.copy(
         workdir / f"nnDet_raw_data/{taskname}/dataset.json",
-        output_dir / f"picai_nndetection_gc_algorithm/results/nnDet/{taskname}/dataset.json",
+        output_task_dir / "dataset.json",
     )
 
 if __name__ == '__main__':
