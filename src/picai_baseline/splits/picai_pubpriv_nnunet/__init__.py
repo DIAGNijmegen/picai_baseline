@@ -14,23 +14,23 @@
 
 from copy import deepcopy
 
-from picai_baseline.splits import subject_list_annotated
-from picai_baseline.splits.picai import (nnunet_splits, train_splits,
-                                         valid_splits)
+from picai_baseline.splits import subject_list_annotated_pubpriv
+from picai_baseline.splits.picai_pubpriv import (nnunet_splits, train_splits,
+                                                 valid_splits)
 
 # read dataset configurations
 train_splits = deepcopy(train_splits)  # copy to avoid modifying the original
 for fold, split in train_splits.items():
-    split['subject_list'] = sorted(list(set(split['subject_list']) & set(subject_list_annotated)))
+    split['subject_list'] = sorted(list(set(split['subject_list']) & set(subject_list_annotated_pubpriv)))
 
 valid_splits = deepcopy(valid_splits)  # copy to avoid modifying the original
 for fold, split in valid_splits.items():
-    split['subject_list'] = sorted(list(set(split['subject_list']) & set(subject_list_annotated)))
+    split['subject_list'] = sorted(list(set(split['subject_list']) & set(subject_list_annotated_pubpriv)))
 
 nnunet_splits = deepcopy(nnunet_splits)  # copy to avoid modifying the original
 for split in nnunet_splits:
-    split['train'] = sorted(list(set(split['train']) & set(subject_list_annotated)))
-    split['val'] = sorted(list(set(split['val']) & set(subject_list_annotated)))
+    split['train'] = sorted(list(set(split['train']) & set(subject_list_annotated_pubpriv)))
+    split['val'] = sorted(list(set(split['val']) & set(subject_list_annotated_pubpriv)))
 
 # expose dataset configurations
 __all__ = [

@@ -184,6 +184,9 @@ def plan_train(argv):
                              " and passed to the trainer. Example (backslash included): \n"
                              r"--trainer_kwargs='{\"class_weights\":[0,2.00990337,1.42540704,2.13387239,0.85529504,0.592059,0.30040984,8.26874351],"
                              r"\"weight_dc\":0.3,\"weight_ce\":0.7}'")
+    parser.add_argument('--kwargs', type=str, required=False, default=None,
+                        help="Specify additional arguments for nnUNet_train. Example (backslash included): \n"
+                             r"--kwargs='--disable_postprocessing_on_folds'")
     parser.add_argument('--fold', type=str, default='0')
     parser.add_argument('--custom_split', type=str, help='Path to a JSON file with a custom data split into five folds')
     parser.add_argument('--plan_only', action='store_true', help='Run the planning step, but not the training step')
@@ -238,7 +241,7 @@ def plan_train(argv):
             cmd = [
                 'nnUNet_plan_and_preprocess',
                 '-t', taskid,
-                '-tl', '1', '-tf', '1',
+                '-tl', os.environ.get("nnUNet_tl", '1'), '-tf', os.environ.get("nnUNet_tf", '1'),
                 '--verify_dataset_integrity'
             ]
             if not args.plan_2d and '2d' not in args.network:
@@ -247,6 +250,8 @@ def plan_train(argv):
                 cmd.extend(['--planner3d', 'None'])
             if args.pretrained_weights is not None:
                 cmd.extend(['-pretrained_weights', args.pretrained_weights])
+            if args.kwargs is not None:
+                cmd.extend(args.kwargs.split(" "))
             subprocess.check_call(cmd)
 
             # Use a custom data split?

@@ -13,18 +13,18 @@
 #  limitations under the License.
 
 import argparse
+import json
 import os
 import shutil
 import zipfile
 from pathlib import Path
 from subprocess import check_call
 
-from picai_baseline.splits.picai_pubpriv import nnunet_splits
-from picai_baseline.unet.plan_overview import main as plan_overview
+from picai_baseline.splits.picai import nnunet_splits
 
 
-def main():
-    """Train U-Net semi-supervised model."""
+def main(taskname="Task2203_picai_baseline"):
+    """Train nnDetection semi-supervised model."""
     parser = argparse.ArgumentParser()
 
     # input data and model directories
@@ -44,9 +44,14 @@ def main():
     output_dir = Path(args.outputdir)
     scripts_dir = Path(args.scriptsdir)
     checkpoints_dir = Path(args.checkpointsdir)
+    splits_path = workdir / f"splits/{taskname}/splits.json"
 
     workdir.mkdir(parents=True, exist_ok=True)
     output_dir.mkdir(parents=True, exist_ok=True)
+    splits_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # set environment variables
+    os.environ["det_data"] = str(workdir / "nnDet_data")
 
     # extract scripts
     with zipfile.ZipFile(scripts_dir / "code.zip", 'r') as zf:
@@ -64,6 +69,10 @@ def main():
     print("Images folder:", os.listdir(images_dir))
     print("Labels folder:", os.listdir(labels_dir))
 
+    # save cross-validation splits to disk
+    with open(splits_path, "w") as fp:
+        json.dump(nnunet_splits, fp)
+
     # Convert MHA Archive to nnU-Net Raw Data Archive
     # Also, we combine the provided human-expert annotations with the AI-derived annotations.
     print("Preprocessing data...")
@@ -73,45 +82,54 @@ def main():
         "--workdir", workdir.as_posix(),
         "--imagesdir", images_dir.as_posix(),
         "--labelsdir", labels_dir.as_posix(),
-        "--spacing", "3.0", "0.5", "0.5",
-        "--matrix_size", "20", "256", "256",
     ]
     check_call(cmd)
 
-    # Create UNet overviews
-    print("Creating UNet overviews...")
-    plan_overview(
-        preprocessed_data_path=workdir / 'nnUNet_raw_data/Task2203_picai_baseline/',
-        overviews_path=checkpoints_dir / 'results/UNet/overviews/',
-        splits=nnunet_splits,
-    )
+    # Convert nnU-Net Raw Data Archive to nnDetection Raw Data Archive
+    print("Converting data...")
+    cmd = [
+        "python", "-m", "picai_prep", "nnunet2nndet",
+        "--input", (workdir / "nnUNet_raw_data/Task2203_picai_baseline").as_posix(),
+        "--output", (workdir / f"nnDet_raw_data/{taskname}").as_posix(),
+    ]
 
     # Train models
-    print(f"Training model...")
-    folds = range(5)  # range(5) for 5-fold cross-validation
-    cmd = [
-        "python", (local_scripts_dir / "picai_baseline/src/picai_baseline/unet/train.py").as_posix(),
-        "--weights_dir", (checkpoints_dir / "results/UNet/weights_semisupervised/").as_posix(),
-        "--overviews_dir", (checkpoints_dir / "results/UNet/overviews/").as_posix(),
-        "--folds", *[str(fold) for fold in folds],
-        "--max_threads", "6",
-        "--enable_da", "1",
-        "--num_epochs", "2",  # 250 for baseline U-Net
-        "--validate_n_epochs", "1",
-        "--validate_min_epoch", "0",
-    ]
-    check_call(cmd)
+    folds = range(1)  # range(5) for 5-fold cross-validation
+    for fold in folds:
+        print(f"Training fold {fold}...")
+        cmd = [
+            "nndet",
+            "prep_train",
+            str(taskname),
+            workdir.as_posix(),
+            "--results", checkpoints_dir.as_posix(),
+            "--custom_split", str(splits_path),
+            "--fold", str(fold),
+        ]
+        check_call(cmd)
 
     # Export trained models
+    output_task_dir = output_dir / "picai_nndetection_gc_algorithm/results/nnDet" / taskname
+    consolidated_model_dir = output_task_dir / "RetinaUNetV001_D3V001_3d/consolidated"
+    consolidated_model_dir.mkdir(parents=True, exist_ok=True)
+    input_consolidated_model_dir = checkpoints_dir / f"nnDet/{taskname}/RetinaUNetV001_D3V001_3d/consolidated"
     for fold in folds:
-        src = checkpoints_dir / f"results/UNet/weights_semisupervised/unet_F{fold}.pt"
-        dst = output_dir / f"picai_unet_semi_supervised_gc_algorithm/results/UNet/weights_semisupervised/unet_F{fold}.pt"
-        dst.mkdir(parents=True, exist_ok=True)
+        src = checkpoints_dir / f"nnDet/{taskname}/RetinaUNetV001_D3V001_3d/consolidated/model_fold{fold}.ckpt"
+        dst = consolidated_model_dir / f"model_fold{fold}.ckpt"
         shutil.copy(src, dst)
 
-    shutil.copy(workdir / "results/UNet/weights_semisupervised/plans.pkl",
-                output_dir / "picai_unet_semi_supervised_gc_algorithm/results/UNet/weights_semisupervised/plans.pkl")
-
+    shutil.copy(
+        input_consolidated_model_dir / "config.yaml",
+        consolidated_model_dir / "config.yaml",
+    )
+    shutil.copy(
+        input_consolidated_model_dir / "plan_inference.pkl",
+        consolidated_model_dir / "plan_inference.pkl",
+    )
+    shutil.copy(
+        workdir / f"nnDet_raw_data/{taskname}/dataset.json",
+        output_task_dir / "dataset.json",
+    )
 
 if __name__ == '__main__':
     main()

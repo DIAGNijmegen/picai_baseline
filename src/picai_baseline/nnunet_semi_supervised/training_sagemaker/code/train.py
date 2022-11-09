@@ -35,6 +35,7 @@ def main(taskname="Task2203_picai_baseline"):
     parser.add_argument('--outputdir', type=str, default=os.environ.get('SM_MODEL_DIR', "/output"))
     parser.add_argument('--checkpointsdir', type=str, default="/checkpoints")
     parser.add_argument('--nnUNet_n_proc_DA', type=int, default=None)
+    parser.add_argument('--nnUNet_tf', type=int, default=8, help="Number of preprocessing threads for full images")
 
     args, _ = parser.parse_known_args()
 
@@ -45,11 +46,11 @@ def main(taskname="Task2203_picai_baseline"):
     output_dir = Path(args.outputdir)
     scripts_dir = Path(args.scriptsdir)
     checkpoints_dir = Path(args.checkpointsdir)
-    nnUNet_splits_path = workdir / f"nnUNet_raw_data/{taskname}/splits.json"
+    splits_path = workdir / f"splits/{taskname}/splits.json"
 
     workdir.mkdir(parents=True, exist_ok=True)
     output_dir.mkdir(parents=True, exist_ok=True)
-    nnUNet_splits_path.parent.mkdir(parents=True, exist_ok=True)
+    splits_path.parent.mkdir(parents=True, exist_ok=True)
 
     # set environment variables
     os.environ["prepdir"] = str(workdir / "nnUNet_preprocessed")
@@ -81,7 +82,7 @@ def main(taskname="Task2203_picai_baseline"):
     check_call(cmd)
 
     # save cross-validation splits to disk
-    with open(nnUNet_splits_path, "w") as fp:
+    with open(splits_path, "w") as fp:
         json.dump(nnunet_splits, fp)
 
     # Convert MHA Archive to nnU-Net Raw Data Archive
@@ -93,12 +94,15 @@ def main(taskname="Task2203_picai_baseline"):
         "--workdir", workdir.as_posix(),
         "--imagesdir", images_dir.as_posix(),
         "--labelsdir", labels_dir.as_posix(),
+        "--preprocessing_kwargs", '{"physical_size": [81.0, 192.0, 192.0], "crop_only": true}',
     ]
     check_call(cmd)
 
     # Train models
     if args.nnUNet_n_proc_DA is not None:
         os.environ["nnUNet_n_proc_DA"] = str(args.nnUNet_n_proc_DA)
+    if args.nnUNet_tf is not None:
+        os.environ["nnUNet_tf"] = str(args.nnUNet_tf)
 
     folds = range(5)  # range(5) for 5-fold cross-validation
     for fold in folds:
@@ -109,7 +113,8 @@ def main(taskname="Task2203_picai_baseline"):
             "--results", checkpoints_dir.as_posix(),
             "--trainer", "nnUNetTrainerV2_Loss_FL_and_CE_checkpoints",
             "--fold", str(fold),
-            "--custom_split", str(nnUNet_splits_path),
+            "--custom_split", str(splits_path),
+            "--kwargs='--disable_postprocessing_on_folds'",
         ]
         check_call(cmd)
 
