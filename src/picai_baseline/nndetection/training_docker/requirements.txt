@@ -18,7 +18,7 @@ GitPython
 matplotlib
 seaborn
 numpy>=1.21.1
-picai_eval
-picai_prep
-picai_baseline
+picai_eval>=1.4.4
+picai_prep>=2.1.2
+picai_baseline>=0.7.0
 urllib3>=1.26.0

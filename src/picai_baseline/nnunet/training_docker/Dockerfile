@@ -31,9 +31,9 @@ RUN SITE_PKG=`pip3 show nnunet | grep "Location:" | awk '{print $2}'` && \
 
 # Install PI-CAI repositories
 RUN pip3 install \
-    picai_eval>=1.4.1 \
-    picai_prep>=2.0.1 \
-    git+https://github.com/DIAGNijmegen/picai_baseline
+    picai_eval>=1.4.4 \
+    picai_prep>=2.1.2 \
+    picai_baseline>=0.7.0
 
 # copy custom files to nnUNet folder
 COPY nnUNetTrainerV2_focalLoss.py /tmp/nnUNetTrainerV2_focalLoss.py
