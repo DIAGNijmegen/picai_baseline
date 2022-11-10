@@ -159,7 +159,7 @@ if __name__ == "__main__":
     parser.add_argument("--metrics_fn", type=str, default=r"metrics-{checkpoint}-{fold}-{threshold}.json",
                         help=r"Filename to save metrics to. May contain {checkpoint} and {threshold} which are " +
                              r"auto-filled. Default: metrics-{checkpoint}-{threshold}.json")
-    parser.add_argument("--splits", type=str, default="picai_pub",
+    parser.add_argument("--splits", type=str, default="picai_pub_nnunet",
                         help="Splits for cross-validation. Available: picai_pub, picai_pub_nnunet, picai_pubpriv, " +
                              "picai_pubpriv_nnunet.")
     args = parser.parse_args()
