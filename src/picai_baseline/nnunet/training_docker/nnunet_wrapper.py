@@ -250,8 +250,6 @@ def plan_train(argv):
                 cmd.extend(['--planner3d', 'None'])
             if args.pretrained_weights is not None:
                 cmd.extend(['-pretrained_weights', args.pretrained_weights])
-            if args.kwargs is not None:
-                cmd.extend(args.kwargs.split(" "))
             subprocess.check_call(cmd)
 
             # Use a custom data split?
@@ -305,6 +303,9 @@ def plan_train(argv):
             cmd.append('--use_compressed_data')
         if args.ensembling:
             cmd.append('--npz')
+        if args.kwargs is not None:
+            cmd.extend(args.kwargs.split(" "))
+        print(f'[#] Running {" ".join(cmd)}')
 
         subprocess.check_call(cmd)
 
