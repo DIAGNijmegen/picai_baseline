@@ -1,6 +1,7 @@
 #!/opt/conda/bin/python
 
 import argparse
+import functools
 import os
 import pickle
 import re
@@ -18,6 +19,9 @@ from nnunet.utilities.io import (checksum, path_exists, read_json,
 from picai_prep.data_utils import atomic_file_copy
 
 PLANS = 'nnUNetPlansv2.1'
+
+# add a flush to each print statement to ensure the stuff gets logged on SOL
+print = functools.partial(print, flush=True)
 
 
 class CustomizedCarbonTracker:
@@ -310,7 +314,7 @@ def plan_train(argv):
         subprocess.check_call(cmd)
 
         # Copy split file since that is for sure available now (nnUNet_train has created
-        # it the file did not exist already - unless training with "all", so still check)
+        # it if the file did not exist already - unless training with "all", so still check)
         if splits_file.exists():
             shutil_sol.copyfile(splits_file, taskdir)
 
