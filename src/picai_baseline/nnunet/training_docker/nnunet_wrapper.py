@@ -206,6 +206,9 @@ def plan_train(argv):
     parser.add_argument('--pretrained_weights', type=str, required=False, default=None)
     args = parser.parse_args(argv)
 
+    # aid type hinting
+    args.task = str(args.task)
+
     # Set environment variables
     datadir = Path(args.data)
     prepdir = Path(os.environ.get('prepdir', '/home/user/data'))
@@ -315,7 +318,7 @@ def plan_train(argv):
 
         # Copy split file since that is for sure available now (nnUNet_train has created
         # it if the file did not exist already - unless training with "all", so still check)
-        if splits_file.exists():
+        if splits_file.exists() and splits_file.parent.absolute() != taskdir.absolute():
             shutil_sol.copyfile(splits_file, taskdir)
 
 
