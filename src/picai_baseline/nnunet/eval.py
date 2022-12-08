@@ -18,6 +18,10 @@ from pathlib import Path
 from typing import Callable, Optional, Union
 
 import numpy as np
+from picai_eval import evaluate_folder
+from picai_prep.preprocessing import crop_or_pad
+from report_guided_annotation import extract_lesion_candidates
+
 from picai_baseline.nnunet.softmax_export import \
     convert_cropped_npz_to_original_nifty
 from picai_baseline.splits.picai import valid_splits as picai_pub_valid_splits
@@ -27,9 +31,6 @@ from picai_baseline.splits.picai_pubpriv import \
     valid_splits as picai_pubpriv_valid_splits
 from picai_baseline.splits.picai_pubpriv_nnunet import \
     valid_splits as picai_pubpriv_nnunet_valid_splits
-from picai_eval import evaluate_folder
-from picai_prep.preprocessing import crop_or_pad
-from report_guided_annotation import extract_lesion_candidates
 
 try:
     import numpy.typing as npt
@@ -66,13 +67,16 @@ def evaluate(
         task_dir = workdir / task_dir
 
     if isinstance(splits, str):
-        # select splits
-        splits = {
-            "picai_pub": picai_pub_valid_splits,
-            "picai_pubpriv": picai_pubpriv_valid_splits,
-            "picai_pub_nnunet": picai_pub_nnunet_valid_splits,
-            "picai_pubpriv_nnunet": picai_pubpriv_nnunet_valid_splits,
-        }[args.splits]
+        if splits == "":
+            splits = None
+        else:
+            # select splits
+            splits = {
+                "picai_pub": picai_pub_valid_splits,
+                "picai_pubpriv": picai_pubpriv_valid_splits,
+                "picai_pub_nnunet": picai_pub_nnunet_valid_splits,
+                "picai_pubpriv_nnunet": picai_pubpriv_nnunet_valid_splits,
+            }[args.splits]
 
     if isinstance(softmax_postprocessing_func, str):
         if softmax_postprocessing_func == "extract_lesion_candidates":
@@ -114,10 +118,12 @@ def evaluate(
                 )
 
             # evaluate
+            if splits is not None:
+                subject_list = splits[fold]['subject_list']
             metrics = evaluate_folder(
                 y_det_dir=softmax_dir,
                 y_true_dir=workdir / "nnUNet_raw_data" / task / "labelsTr",
-                subject_list=splits[fold]['subject_list'],
+                subject_list=subject_list,
                 pred_extensions=['_softmax.nii.gz'],
                 y_det_postprocess_func=softmax_postprocessing_func,
                 num_parallel_calls=5,
@@ -155,7 +161,7 @@ if __name__ == "__main__":
     parser.add_argument("--threshold", type=str, default="dynamic",
                         help="Threshold for lesion extraction from softmax predictions. " +
                              "Use dynamic-fast for quicker evaluation at almost equal performance." +
-                              "Default: dynamic.")
+                             "Default: dynamic.")
     parser.add_argument("--metrics_fn", type=str, default=r"metrics-{checkpoint}-{fold}-{threshold}.json",
                         help=r"Filename to save metrics to. May contain {checkpoint} and {threshold} which are " +
                              r"auto-filled. Default: metrics-{checkpoint}-{threshold}.json")
