@@ -13,6 +13,7 @@
 #  limitations under the License.
 
 import argparse
+import json
 from multiprocessing import Pool
 from pathlib import Path
 from typing import Callable, Optional, Union
@@ -71,12 +72,17 @@ def evaluate(
             splits = None
         else:
             # select splits
-            splits = {
+            predefined_splits = {
                 "picai_pub": picai_pub_valid_splits,
                 "picai_pubpriv": picai_pubpriv_valid_splits,
                 "picai_pub_nnunet": picai_pub_nnunet_valid_splits,
                 "picai_pubpriv_nnunet": picai_pubpriv_nnunet_valid_splits,
-            }[args.splits]
+            }
+            if splits in predefined_splits:
+                splits = predefined_splits[splits]
+            else:
+                # `splits` should be the path to a json file containing the splits
+                print(f"Loading splits from {splits}")
 
     if isinstance(softmax_postprocessing_func, str):
         if softmax_postprocessing_func == "extract_lesion_candidates":
@@ -117,9 +123,20 @@ def evaluate(
                     iterable=original_softmax_prediction_paths,
                 )
 
-            # evaluate
-            if splits is not None:
+            # select subject list
+            if splits is None:
+                subject_list = None
+            elif isinstance(splits, dict):
                 subject_list = splits[fold]['subject_list']
+            elif isinstance(splits, str):
+                path = Path(splits.replace(r"{fold}", str(fold)))
+                with open(path, "r") as f:
+                    splits = json.load(f)
+                subject_list = splits['subject_list']
+            else:
+                raise ValueError(f"Unrecognised splits: {splits}")
+
+            # evaluate
             metrics = evaluate_folder(
                 y_det_dir=softmax_dir,
                 y_true_dir=workdir / "nnUNet_raw_data" / task / "labelsTr",
@@ -135,7 +152,7 @@ def evaluate(
             print(metrics)
 
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser(description='Command Line Arguments')
     parser.add_argument("--task", type=str, default="Task2201_picai_baseline",
                         help="Task name of the nnU-Net experiment. Default: Task2201_picai_baseline")
@@ -166,8 +183,10 @@ if __name__ == "__main__":
                         help=r"Filename to save metrics to. May contain {checkpoint} and {threshold} which are " +
                              r"auto-filled. Default: metrics-{checkpoint}-{threshold}.json")
     parser.add_argument("--splits", type=str, default="picai_pub_nnunet",
-                        help="Splits for cross-validation. Available: picai_pub, picai_pub_nnunet, picai_pubpriv, " +
-                             "picai_pubpriv_nnunet.")
+                        help="Splits for cross-validation. Available predefined splits: picai_pub, picai_pub_nnunet, " +
+                             "picai_pubpriv, picai_pubpriv_nnunet. Alternatively, provide a path to a json file " +
+                             "containing a dictiory with key 'subject_list', where `{fold}` in the path is replaced by " +
+                             "the fold. Example: `/workdir/splits/val/fold_{fold}.json`. Default: picai_pub_nnunet.")
     args = parser.parse_args()
 
     # evaluate
@@ -184,3 +203,7 @@ if __name__ == "__main__":
         splits=args.splits,
         predictions_folder=args.predictions_folder,
     )
+
+
+if __name__ == "__main__":
+    main()
