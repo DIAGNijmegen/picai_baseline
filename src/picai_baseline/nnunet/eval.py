@@ -58,6 +58,7 @@ def evaluate(
     metrics_fn: str = r"metrics-{checkpoint}-{threshold}.json",
     splits: str = "picai_pub",
     predictions_folder: str = r"picai_pubtrain_predictions_{checkpoint}",
+    labels_folder: Union[Path, str] = "auto",
     verbose: int = 2,
 ):
     # input validation
@@ -136,10 +137,16 @@ def evaluate(
             else:
                 raise ValueError(f"Unrecognised splits: {splits}")
 
+            # select labels folder
+            if labels_folder == "auto":
+                y_true_dir = workdir / "nnUNet_raw_data" / task / "labelsTr"
+            else:
+                y_true_dir = workdir / labels_folder.replace(r"{fold}", str(fold))
+
             # evaluate
             metrics = evaluate_folder(
                 y_det_dir=softmax_dir,
-                y_true_dir=workdir / "nnUNet_raw_data" / task / "labelsTr",
+                y_true_dir=y_true_dir,
                 subject_list=subject_list,
                 pred_extensions=['_softmax.nii.gz'],
                 y_det_postprocess_func=softmax_postprocessing_func,
@@ -162,7 +169,7 @@ def main():
                         help="Path to the workdir where 'results' and 'nnUNet_raw_data' are stored. Default: /workdir")
     parser.add_argument("--task_dir", type=str, default="auto",
                         help="Path to the task directory (relative to the workdir). Optional, will be constucted " +
-                             "for default nnU-Net forlder structure")
+                             "for default nnU-Net folder structure")
     parser.add_argument("--checkpoints", type=str, nargs="+", default=["model_best"],
                         help="Which checkpoints to evaluate. Multiple checkpoints can be passed at once. Default: " +
                              "model_best")
@@ -171,6 +178,9 @@ def main():
                              "0, 1, 2, 3, 4  (all)")
     parser.add_argument("--predictions_folder", type=str, default=r"picai_pubtrain_predictions_{checkpoint}",
                         help="Folder with nnU-Net softmax predictions.")
+    parser.add_argument("--labels_folder", type=str, default="auto",
+                        help="Folder with annotations. Optional, will be constucted to labelsTr of the specified " +
+                             "nnU-Net task.")
     parser.add_argument("--softmax_postprocessing_func", type=str, default="extract_lesion_candidates",
                         help="Function to post-process the softmax volumes. Default: extract lesion candidates " +
                              "using the Report-Guided Annotation repository. Use extract_lesion_candidates_cropped " +
@@ -202,6 +212,7 @@ def main():
         metrics_fn=args.metrics_fn,
         splits=args.splits,
         predictions_folder=args.predictions_folder,
+        labels_folder=args.labels_folder,
     )
 
 
