@@ -57,7 +57,7 @@ if __name__ == '__main__':
     parser.add_argument("--mountpoint", type=str, default="/media", help="The path to the mountpoint.")
     parser.add_argument("--workdir", type=str, default="pelvis/projects/joeran/picai/pubpriv-workdir", help="The path to the workdir (relative to the mountpoint).")
     parser.add_argument("--in-dir-data", type=str, default="pelvis/data/prostate-MRI/picai/pubpriv_training/v1", help="The path to the input data directory (relative to the mountpoint).")
-    parser.add_argument("--out-dir-ava", type=str, default=True, help="The path to the output ava directory.")
+    parser.add_argument("--prediction_folder_name", type=str, default="picai_pubpriv_predictions_ensemble_model_best_automatic_annotations")
     args = parser.parse_args()
 
     resample_annotations(
@@ -66,5 +66,5 @@ if __name__ == '__main__':
         mountpoint=args.mountpoint,
         workdir=args.workdir,
         in_dir_data=args.in_dir_data,
-        prediction_folder_name=args.out_dir_ava,
+        prediction_folder_name=args.prediction_folder_name,
     )
