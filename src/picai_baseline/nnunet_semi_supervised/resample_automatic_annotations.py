@@ -36,6 +36,10 @@ def resample_annotations(
             lbl_manual_path = in_dir_annot / f"{subject_id}.nii.gz"
             lbl_ava_path = in_dir_ava / f"{subject_id}_softmax.nii.gz"
             t2_path = in_dir_scans / subject_id.split("_")[0] / f"{subject_id}_t2w.mha"
+            out_path_ava = out_dir_ava / f"{subject_id}.nii.gz"
+
+            if out_path_ava.exists():
+                print(f"Resampled annotation for {subject_id} exists, skipping..")
 
             # read
             lbl_ava = sitk.ReadImage(str(lbl_ava_path))
@@ -48,7 +52,7 @@ def resample_annotations(
             lbl = resample_to_reference_scan(lbl_ava, reference_scan_original=reference)
 
             # save
-            atomic_image_write(lbl, out_dir_ava / f"{subject_id}.nii.gz")
+            atomic_image_write(lbl, out_path_ava)
 
 
 if __name__ == '__main__':
