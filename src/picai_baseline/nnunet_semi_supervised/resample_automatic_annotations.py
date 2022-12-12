@@ -40,6 +40,7 @@ def resample_annotations(
 
             if out_path_ava.exists():
                 print(f"Resampled annotation for {subject_id} exists, skipping..")
+                continue
 
             # read
             lbl_ava = sitk.ReadImage(str(lbl_ava_path))
