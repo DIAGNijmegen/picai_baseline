@@ -1,0 +1,13 @@
+numpy
+pandas
+SimpleITK>=2.1.1.2
+picai_baseline>=0.7.0
+picai_eval>=1.4.4
+picai_prep>=2.1.2
+torch>=1.9.0+cu111
+torchvision>=0.10.0+cu111
+threadpoolctl>=3.1.0
+monai>=0.8.0
+batchgenerators>=0.23
+tensorboard
+openpyxl

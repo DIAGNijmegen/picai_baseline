@@ -31,9 +31,9 @@ RUN SITE_PKG=`pip3 show nnunet | grep "Location:" | awk '{print $2}'` && \
 
 # Install PI-CAI repositories
 RUN pip3 install \
-    picai_eval \
-    picai_prep \
-    git+https://github.com/DIAGNijmegen/picai_baseline
+    picai_eval>=1.4.4 \
+    picai_prep>=2.1.2 \
+    picai_baseline>=0.7.0
 
 # copy custom files to nnUNet folder
 COPY nnUNetTrainerV2_focalLoss.py /tmp/nnUNetTrainerV2_focalLoss.py
@@ -47,6 +47,10 @@ RUN SITE_PKG=`pip3 show nnunet | grep "Location:" | awk '{print $2}'` && \
 COPY nnUNetTrainerV2_Loss_FL_and_CE.py /tmp/nnUNetTrainerV2_Loss_FL_and_CE.py
 RUN SITE_PKG=`pip3 show nnunet | grep "Location:" | awk '{print $2}'` && \
     mv /tmp/nnUNetTrainerV2_Loss_FL_and_CE.py "$SITE_PKG/nnunet/training/network_training/nnUNetTrainerV2_Loss_FL_and_CE.py"
+
+COPY run_training.py /tmp/run_training.py
+RUN SITE_PKG=`pip3 show nnunet | grep "Location:" | awk '{print $2}'` && \
+    mv /tmp/run_training.py "$SITE_PKG/nnunet/run/run_training.py"
 
 # Configure entrypoint
 COPY --chown=user nnunet_wrapper.py /home/user/nnunet_wrapper.py

@@ -80,11 +80,14 @@ def copy_preprocessed_data_to_compute_node(task: str, remote_data_dir: Pathlike,
     local_task_dir = Path(os.environ['det_data']) / task
     splits_filepath = local_task_dir / 'preprocessed' / 'splits_final.pkl'
 
-    # Copy preprocessed data to compute node
-    print('[#] Copying plans and preprocessed data from storage server to compute node')
-    local_task_dir.mkdir(parents=True, exist_ok=True)
-    shutil_sol.copyfile(remote_task_dir / "dataset.json", local_task_dir / "dataset.json")
-    shutil_sol.copytree(remote_task_dir / 'preprocessed', local_task_dir / 'preprocessed')
+    if local_task_dir.absolute() == remote_task_dir.absolute():
+        print(f"Remote and local task directory are the same: {local_task_dir}")
+    else:
+        # Copy preprocessed data to compute node
+        print('[#] Copying plans and preprocessed data from storage server to compute node')
+        local_task_dir.mkdir(parents=True, exist_ok=True)
+        shutil_sol.copyfile(remote_task_dir / "dataset.json", local_task_dir / "dataset.json")
+        shutil_sol.copytree(remote_task_dir / 'preprocessed', local_task_dir / 'preprocessed')
 
     # Replace split with custom split?
     if custom_split:
@@ -99,6 +102,7 @@ def copy_preprocessed_data_to_compute_node(task: str, remote_data_dir: Pathlike,
         splits_filepath.parent.mkdir(parents=True, exist_ok=True)
         with splits_filepath.open('wb') as fp:
             pickle.dump(splits, fp)
+        print(f'[#] Replaced splits with custom split: {splits_filepath}')
 
 
 def nndet_prep_train(argv):

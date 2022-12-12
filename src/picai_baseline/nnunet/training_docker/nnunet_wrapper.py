@@ -1,6 +1,7 @@
 #!/opt/conda/bin/python
 
 import argparse
+import functools
 import os
 import pickle
 import re
@@ -12,13 +13,15 @@ from pathlib import Path
 
 import numpy as np
 from carbontracker.tracker import CarbonTracker
-from picai_prep.data_utils import atomic_file_copy
-
 from nnunet.utilities import shutil_sol
 from nnunet.utilities.io import (checksum, path_exists, read_json,
                                  refresh_file_list, write_json)
+from picai_prep.data_utils import atomic_file_copy
 
 PLANS = 'nnUNetPlansv2.1'
+
+# add a flush to each print statement to ensure the stuff gets logged on SOL
+print = functools.partial(print, flush=True)
 
 
 class CustomizedCarbonTracker:
@@ -185,6 +188,9 @@ def plan_train(argv):
                              " and passed to the trainer. Example (backslash included): \n"
                              r"--trainer_kwargs='{\"class_weights\":[0,2.00990337,1.42540704,2.13387239,0.85529504,0.592059,0.30040984,8.26874351],"
                              r"\"weight_dc\":0.3,\"weight_ce\":0.7}'")
+    parser.add_argument('--kwargs', type=str, required=False, default=None,
+                        help="Specify additional arguments for nnUNet_train. Example (backslash included): \n"
+                             r"--kwargs='--disable_postprocessing_on_folds'")
     parser.add_argument('--fold', type=str, default='0')
     parser.add_argument('--custom_split', type=str, help='Path to a JSON file with a custom data split into five folds')
     parser.add_argument('--plan_only', action='store_true', help='Run the planning step, but not the training step')
@@ -200,9 +206,13 @@ def plan_train(argv):
     parser.add_argument('--pretrained_weights', type=str, required=False, default=None)
     args = parser.parse_args(argv)
 
+    # aid type hinting
+    args.task = str(args.task)
+
     # Set environment variables
     datadir = Path(args.data)
-    prepdir = Path('/home/user/data')
+    prepdir = Path(os.environ.get('prepdir', '/home/user/data'))
+
     splits_file = prepdir / args.task / 'splits_final.pkl'
 
     os.environ['nnUNet_raw_data_base'] = str(datadir)
@@ -238,7 +248,7 @@ def plan_train(argv):
             cmd = [
                 'nnUNet_plan_and_preprocess',
                 '-t', taskid,
-                '-tl', '1', '-tf', '1',
+                '-tl', os.environ.get("nnUNet_tl", '1'), '-tf', os.environ.get("nnUNet_tf", '1'),
                 '--verify_dataset_integrity'
             ]
             if not args.plan_2d and '2d' not in args.network:
@@ -263,10 +273,11 @@ def plan_train(argv):
                     pickle.dump(splits, fp)
                 shutil_sol.copyfile(args.custom_split, splits_file.with_suffix('.json'))
 
-            # Copy preprocessed data to storage server
-            print('[#] Copying plans and preprocessed data from compute node to storage server')
-            taskdir.parent.mkdir(parents=True, exist_ok=True)
-            shutil_sol.copytree(prepdir / args.task, taskdir)
+            if (prepdir / args.task).absolute() != taskdir.absolute():
+                # Copy preprocessed data to storage server
+                print('[#] Copying plans and preprocessed data from compute node to storage server')
+                taskdir.parent.mkdir(parents=True, exist_ok=True)
+                shutil_sol.copytree(prepdir / args.task, taskdir)
 
         if args.plan_only:
             return
@@ -299,12 +310,15 @@ def plan_train(argv):
             cmd.append('--use_compressed_data')
         if args.ensembling:
             cmd.append('--npz')
+        if args.kwargs is not None:
+            cmd.extend(args.kwargs.split(" "))
+        print(f'[#] Running {" ".join(cmd)}')
 
         subprocess.check_call(cmd)
 
         # Copy split file since that is for sure available now (nnUNet_train has created
-        # it the file did not exist already - unless training with "all", so still check)
-        if splits_file.exists():
+        # it if the file did not exist already - unless training with "all", so still check)
+        if splits_file.exists() and splits_file.parent.absolute() != taskdir.absolute():
             shutil_sol.copyfile(splits_file, taskdir)
 
 
