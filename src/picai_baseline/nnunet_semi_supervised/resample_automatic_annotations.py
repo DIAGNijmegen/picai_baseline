@@ -28,7 +28,7 @@ def resample_annotations(
     in_dir_scans = in_dir_data / "images"
     out_dir_ava = workdir / f"results/nnUNet/3d_fullres/{task}/{trainer}__nnUNetPlansv2.1/{prediction_folder_name}_resampled"
     
-    out_dir_ava.mkdir(parents=True, exists_ok=True)
+    out_dir_ava.mkdir(parents=True, exist_ok=True)
 
     for fold, split in valid_splits.items():
         for subject_id in tqdm(split['subject_list'], desc=f"Fold {fold}"):
