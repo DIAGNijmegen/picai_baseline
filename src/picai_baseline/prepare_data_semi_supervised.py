@@ -150,7 +150,7 @@ else:
     # save mha2nnunet_settings
     with open(mha2nnunet_settings_path, "w") as fp:
         json.dump(mha2nnunet_settings, fp, indent=4)
-    print(f"Saved mha2nnunet settings to {mha2nnunet_settings_path}")
+    print(f"Saved updated mha2nnunet settings to {mha2nnunet_settings_path}")
 
 
 if nnUNet_dataset_json_path.exists():

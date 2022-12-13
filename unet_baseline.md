@@ -14,6 +14,13 @@ mha2nnunet_settings["preprocessing"]["spacing"] = [3.0, 0.5, 0.5]
 mha2nnunet_settings["preprocessing"]["matrix_size"] = [20, 256, 256]
 ```
 
+Instead of nnUNet's:
+
+```python
+mha2nnunet_settings["preprocessing"]["physical_size"] = [81.0, 192.0, 192.0]
+mha2nnunet_settings["preprocessing"]["crop_only"] = True
+```
+
 By doing so, besides formatting and converting the dataset into the [`nnU-Net Raw Data Archive`][nnunet_raw_data_format] structure, [prepare_data.py](src/picai_baseline/prepare_data.py) also preprocesses each scan and annotation in the dataset, as follows:
 
 - **Resampling Spatial Resolution**: The [PI-CAI: Public Training and Development Dataset](https://pi-cai.grand-challenge.org/DATA/) contains MRI scans acquired using seven different scanners, from two vendors, at three centers. Thus, the spatial resolution of its images vary across different patient exams. For instance, in the case of the axial T2W scans, the most common voxel spacing (in mm/voxel) observed is 3.0×0.5×0.5 (43%), followed by 3.6×0.3×0.3 (25%), 3.0×0.342×0.342 (15%) and others (17%). As a naive approach, we simply resample all scans to 3.0×0.5×0.5 mm/voxel.
