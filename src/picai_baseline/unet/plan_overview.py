@@ -20,13 +20,13 @@ from typing import Dict, List, Optional, Union
 import numpy as np
 import SimpleITK as sitk
 
-from picai_baseline.splits.picai import valid_splits as picai_pub_valid_splits
+from picai_baseline.splits.picai import nnunet_splits as picai_pub_splits
 from picai_baseline.splits.picai_nnunet import \
-    valid_splits as picai_pub_nnunet_valid_splits
+    nnunet_splits as picai_pub_nnunet_splits
 from picai_baseline.splits.picai_pubpriv import \
-    valid_splits as picai_pubpriv_valid_splits
+    nnunet_splits as picai_pubpriv_splits
 from picai_baseline.splits.picai_pubpriv_nnunet import \
-    valid_splits as picai_pubpriv_nnunet_valid_splits
+    nnunet_splits as picai_pubpriv_nnunet_splits
 
 
 def main(
@@ -39,10 +39,10 @@ def main(
     if isinstance(splits, str):
         # select splits
         splits = {
-            "picai_pub": picai_pub_valid_splits,
-            "picai_pubpriv": picai_pubpriv_valid_splits,
-            "picai_pub_nnunet": picai_pub_nnunet_valid_splits,
-            "picai_pubpriv_nnunet": picai_pubpriv_nnunet_valid_splits,
+            "picai_pub": picai_pub_splits,
+            "picai_pubpriv": picai_pubpriv_splits,
+            "picai_pub_nnunet": picai_pub_nnunet_splits,
+            "picai_pubpriv_nnunet": picai_pubpriv_nnunet_splits,
         }[args.splits]
 
     if splits is None:
