@@ -13,6 +13,7 @@
 #  limitations under the License.
 
 import argparse
+import json
 from multiprocessing import Pool
 from pathlib import Path
 from typing import Callable, Optional, Union
@@ -57,6 +58,7 @@ def evaluate(
     metrics_fn: str = r"metrics-{checkpoint}-{threshold}.json",
     splits: str = "picai_pub",
     predictions_folder: str = r"picai_pubtrain_predictions_{checkpoint}",
+    labels_folder: Union[Path, str] = "auto",
     verbose: int = 2,
 ):
     # input validation
@@ -71,12 +73,17 @@ def evaluate(
             splits = None
         else:
             # select splits
-            splits = {
+            predefined_splits = {
                 "picai_pub": picai_pub_valid_splits,
                 "picai_pubpriv": picai_pubpriv_valid_splits,
                 "picai_pub_nnunet": picai_pub_nnunet_valid_splits,
                 "picai_pubpriv_nnunet": picai_pubpriv_nnunet_valid_splits,
-            }[args.splits]
+            }
+            if splits in predefined_splits:
+                splits = predefined_splits[splits]
+            else:
+                # `splits` should be the path to a json file containing the splits
+                print(f"Loading splits from {splits}")
 
     if isinstance(softmax_postprocessing_func, str):
         if softmax_postprocessing_func == "extract_lesion_candidates":
@@ -117,12 +124,29 @@ def evaluate(
                     iterable=original_softmax_prediction_paths,
                 )
 
-            # evaluate
-            if splits is not None:
+            # select subject list
+            if splits is None:
+                subject_list = None
+            elif isinstance(splits, dict):
                 subject_list = splits[fold]['subject_list']
+            elif isinstance(splits, str):
+                path = Path(splits.replace(r"{fold}", str(fold)))
+                with open(path, "r") as f:
+                    splits = json.load(f)
+                subject_list = splits['subject_list']
+            else:
+                raise ValueError(f"Unrecognised splits: {splits}")
+
+            # select labels folder
+            if labels_folder == "auto":
+                y_true_dir = workdir / "nnUNet_raw_data" / task / "labelsTr"
+            else:
+                y_true_dir = workdir / labels_folder.replace(r"{fold}", str(fold))
+
+            # evaluate
             metrics = evaluate_folder(
                 y_det_dir=softmax_dir,
-                y_true_dir=workdir / "nnUNet_raw_data" / task / "labelsTr",
+                y_true_dir=y_true_dir,
                 subject_list=subject_list,
                 pred_extensions=['_softmax.nii.gz'],
                 y_det_postprocess_func=softmax_postprocessing_func,
@@ -135,7 +159,7 @@ def evaluate(
             print(metrics)
 
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser(description='Command Line Arguments')
     parser.add_argument("--task", type=str, default="Task2201_picai_baseline",
                         help="Task name of the nnU-Net experiment. Default: Task2201_picai_baseline")
@@ -145,7 +169,7 @@ if __name__ == "__main__":
                         help="Path to the workdir where 'results' and 'nnUNet_raw_data' are stored. Default: /workdir")
     parser.add_argument("--task_dir", type=str, default="auto",
                         help="Path to the task directory (relative to the workdir). Optional, will be constucted " +
-                             "for default nnU-Net forlder structure")
+                             "for default nnU-Net folder structure")
     parser.add_argument("--checkpoints", type=str, nargs="+", default=["model_best"],
                         help="Which checkpoints to evaluate. Multiple checkpoints can be passed at once. Default: " +
                              "model_best")
@@ -154,6 +178,9 @@ if __name__ == "__main__":
                              "0, 1, 2, 3, 4  (all)")
     parser.add_argument("--predictions_folder", type=str, default=r"picai_pubtrain_predictions_{checkpoint}",
                         help="Folder with nnU-Net softmax predictions.")
+    parser.add_argument("--labels_folder", type=str, default="auto",
+                        help="Folder with annotations. Optional, will be constucted to labelsTr of the specified " +
+                             "nnU-Net task.")
     parser.add_argument("--softmax_postprocessing_func", type=str, default="extract_lesion_candidates",
                         help="Function to post-process the softmax volumes. Default: extract lesion candidates " +
                              "using the Report-Guided Annotation repository. Use extract_lesion_candidates_cropped " +
@@ -166,8 +193,10 @@ if __name__ == "__main__":
                         help=r"Filename to save metrics to. May contain {checkpoint} and {threshold} which are " +
                              r"auto-filled. Default: metrics-{checkpoint}-{threshold}.json")
     parser.add_argument("--splits", type=str, default="picai_pub_nnunet",
-                        help="Splits for cross-validation. Available: picai_pub, picai_pub_nnunet, picai_pubpriv, " +
-                             "picai_pubpriv_nnunet.")
+                        help="Splits for cross-validation. Available predefined splits: picai_pub, picai_pub_nnunet, " +
+                             "picai_pubpriv, picai_pubpriv_nnunet. Alternatively, provide a path to a json file " +
+                             "containing a dictiory with key 'subject_list', where `{fold}` in the path is replaced by " +
+                             "the fold. Example: `/workdir/splits/val/fold_{fold}.json`. Default: picai_pub_nnunet.")
     args = parser.parse_args()
 
     # evaluate
@@ -183,4 +212,9 @@ if __name__ == "__main__":
         metrics_fn=args.metrics_fn,
         splits=args.splits,
         predictions_folder=args.predictions_folder,
+        labels_folder=args.labels_folder,
     )
+
+
+if __name__ == "__main__":
+    main()
