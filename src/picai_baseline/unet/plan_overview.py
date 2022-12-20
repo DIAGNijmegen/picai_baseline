@@ -12,13 +12,21 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+import argparse
 import json
 from pathlib import Path
 from typing import Dict, List, Optional, Union
 
 import numpy as np
 import SimpleITK as sitk
-from picai_baseline.splits.picai_nnunet import nnunet_splits
+
+from picai_baseline.splits.picai import valid_splits as picai_pub_valid_splits
+from picai_baseline.splits.picai_nnunet import \
+    valid_splits as picai_pub_nnunet_valid_splits
+from picai_baseline.splits.picai_pubpriv import \
+    valid_splits as picai_pubpriv_valid_splits
+from picai_baseline.splits.picai_pubpriv_nnunet import \
+    valid_splits as picai_pubpriv_nnunet_valid_splits
 
 
 def main(
@@ -28,8 +36,17 @@ def main(
 ):
     """Create overviews of the training data."""
 
+    if isinstance(splits, str):
+        # select splits
+        splits = {
+            "picai_pub": picai_pub_valid_splits,
+            "picai_pubpriv": picai_pubpriv_valid_splits,
+            "picai_pub_nnunet": picai_pub_nnunet_valid_splits,
+            "picai_pubpriv_nnunet": picai_pubpriv_nnunet_valid_splits,
+        }[args.splits]
+
     if splits is None:
-        splits = nnunet_splits
+        raise ValueError("No splits provided!")
 
     # create directory to store overviews
     overviews_path.mkdir(parents=True, exist_ok=True)
@@ -79,6 +96,30 @@ def main(
                 json.dump(overview, fp, indent=4)
 
 
-if __name__ == '__main__':
-    main()
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Command Line Arguments')
+    parser.add_argument("--task", type=str, default="Task2201_picai_baseline",
+                        help="Task name of the experiment. Default: Task2201_picai_baseline")
+    parser.add_argument("--workdir", type=str, default="/workdir",
+                        help="Path to the workdir where 'results' and 'nnUNet_raw_data' are stored. Default: /workdir")
+    parser.add_argument("--preprocessed_data_path", type=str, default="nnUNet_raw_data/{task}",
+                        help="Path to the preprocessed data, relative to the workdir. Default: /workdir/nnUNet_raw_data/{task}")
+    parser.add_argument("--overviews_path", type=str, default="results/UNet/overviews/{task}",
+                        help="Path to the overviews, relative to the workdir. Default: /workdir/results/UNet/overviews/{task}")
+    parser.add_argument("--splits", type=str, default="picai_pub_nnunet",
+                        help="Splits for cross-validation. Available: picai_pub, picai_pub_nnunet, picai_pubpriv, " +
+                             "picai_pubpriv_nnunet.")
+    args = parser.parse_args()
+
+    # paths
+    workdir = Path(args.workdir)
+    preprocessed_data_path = workdir / args.preprocessed_data_path.replace("{task}", args.task)
+    overviews_path = workdir / args.overviews_path.replace("{task}", args.task)
+
+    # evaluate
+    main(
+        preprocessed_data_path=preprocessed_data_path,
+        overviews_path=overviews_path,
+        splits=args.splits,
+    )
     print("Finished.")
