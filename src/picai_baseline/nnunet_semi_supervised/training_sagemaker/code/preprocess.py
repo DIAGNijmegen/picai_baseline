@@ -117,8 +117,8 @@ def main(taskname="Task2203_picai_baseline"):
     cmd = [
         "nnunet", "plan_train", str(taskname), workdir.as_posix(),
         "--custom_split", str(splits_path),
-        "--nnUNet_tf", str(args.nnUNet_tf),
-        "--nnUNet_tl", str(args.nnUNet_tl),
+        "-tf", str(args.nnUNet_tf),
+        "-tl", str(args.nnUNet_tl),
         "--plan_only",
     ]
     check_call(cmd)
