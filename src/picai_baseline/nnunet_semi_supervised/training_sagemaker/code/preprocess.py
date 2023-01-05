@@ -15,7 +15,6 @@
 import argparse
 import json
 import os
-import shutil
 import zipfile
 from pathlib import Path
 from subprocess import check_call
@@ -41,12 +40,11 @@ def main(taskname="Task2203_picai_baseline"):
     parser.add_argument('--labelsdir', type=str, default=os.environ.get('SM_CHANNEL_LABELS', "/input/picai_labels"))
     parser.add_argument('--scriptsdir', type=str, default=os.environ.get('SM_CHANNEL_SCRIPTS', "/scripts"))
     parser.add_argument('--outputdir', type=str, default=os.environ.get('SM_MODEL_DIR', "/output"))
-    parser.add_argument('--checkpointsdir', type=str, default="/checkpoints")
     parser.add_argument('--splits', type=str, default="picai_pubpriv",
                         help="Cross-validation splits. Can be a path to a json file or one of the predefined splits: "
                              "picai_pub, picai_pubpriv, picai_pub_nnunet, picai_pubpriv_nnunet, picai_debug.")
-    parser.add_argument('--nnUNet_n_proc_DA', type=int, default=None)
     parser.add_argument('--nnUNet_tf', type=int, default=8, help="Number of preprocessing threads for full images")
+    parser.add_argument('--nnUNet_tl', type=int, default=8, help="Number of preprocessing threads for low-res images")
 
     args, _ = parser.parse_known_args()
 
@@ -63,8 +61,8 @@ def main(taskname="Task2203_picai_baseline"):
     output_dir.mkdir(parents=True, exist_ok=True)
     splits_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # set environment variables
-    os.environ["prepdir"] = str(workdir / "nnUNet_preprocessed")
+    # set nnU-Net's preprocessed data directory to the output directory
+    os.environ["prepdir"] = str(output_dir / "nnUNet_preprocessed" / taskname)
 
     # extract scripts
     with zipfile.ZipFile(scripts_dir / "code.zip", 'r') as zf:
@@ -119,15 +117,15 @@ def main(taskname="Task2203_picai_baseline"):
     cmd = [
         "nnunet", "plan_train", str(taskname), workdir.as_posix(),
         "--custom_split", str(splits_path),
+        "--nnUNet_tf", str(args.nnUNet_tf),
+        "--nnUNet_tl", str(args.nnUNet_tl),
         "--plan_only",
     ]
     check_call(cmd)
 
-    # Export preprocessed dataset
-    print("Exporting preprocessed dataset...")
-    dst = output_dir / f"nnUNet_preprocessed/{taskname}/"
-    dst.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copytree(workdir / f"nnUNet_preprocessed/{taskname}/", dst)
+    # Note: preprocessing is done immediately to the output directory
+    # if you want to do preprocessing in a different directory,
+    # you need to copy over the data to `output_dir`
 
 
 if __name__ == '__main__':
