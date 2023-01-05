@@ -129,8 +129,6 @@ def main(taskname="Task2203_picai_baseline"):
     cmd = [
         "python", (local_scripts_dir / "picai_baseline/src/picai_baseline/nnunet/training_docker/nnunet_wrapper.py").as_posix(),
         "plan_train", str(taskname), workdir.as_posix(),
-        "--results", checkpoints_dir.as_posix(),
-        "--trainer", "nnUNetTrainerV2_Loss_FL_and_CE_checkpoints",
         "--custom_split", str(splits_path),
         "--kwargs='--disable_validation_inference'",
         "--plan_only",
