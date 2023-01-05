@@ -64,6 +64,10 @@ def main(taskname="Task2203_picai_baseline"):
     # set nnU-Net's preprocessed data directory to the output directory
     os.environ["prepdir"] = str(output_dir / "nnUNet_preprocessed" / taskname)
 
+    # set nnU-Net's number of preprocessing threads
+    os.environ["nnUNet_tf"] = str(args.nnUNet_tf)
+    os.environ["nnUNet_tl"] = str(args.nnUNet_tl)
+
     # extract scripts
     with zipfile.ZipFile(scripts_dir / "code.zip", 'r') as zf:
         zf.extractall(local_scripts_dir)
@@ -117,8 +121,6 @@ def main(taskname="Task2203_picai_baseline"):
     cmd = [
         "nnunet", "plan_train", str(taskname), workdir.as_posix(),
         "--custom_split", str(splits_path),
-        "-tf", str(args.nnUNet_tf),
-        "-tl", str(args.nnUNet_tl),
         "--plan_only",
     ]
     check_call(cmd)
