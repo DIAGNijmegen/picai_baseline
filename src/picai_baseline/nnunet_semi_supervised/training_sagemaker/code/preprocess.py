@@ -15,6 +15,7 @@
 import argparse
 import json
 import os
+import shutil
 import zipfile
 from pathlib import Path
 from subprocess import check_call
@@ -61,8 +62,8 @@ def main(taskname="Task2203_picai_baseline"):
     output_dir.mkdir(parents=True, exist_ok=True)
     splits_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # set nnU-Net's preprocessed data directory to the output directory
-    os.environ["prepdir"] = str(output_dir / "nnUNet_preprocessed" / taskname)
+    # set environment variables
+    os.environ["prepdir"] = str(workdir / "nnUNet_preprocessed")
 
     # set nnU-Net's number of preprocessing threads
     os.environ["nnUNet_tf"] = str(args.nnUNet_tf)
@@ -125,9 +126,11 @@ def main(taskname="Task2203_picai_baseline"):
     ]
     check_call(cmd)
 
-    # Note: preprocessing is done immediately to the output directory
-    # if you want to do preprocessing in a different directory,
-    # you need to copy over the data to `output_dir`
+    # Export preprocessed dataset
+    print("Exporting preprocessed dataset...")
+    dst = output_dir / f"nnUNet_preprocessed/{taskname}/"
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copytree(workdir / f"nnUNet_preprocessed/{taskname}/", dst)
 
 
 if __name__ == '__main__':
