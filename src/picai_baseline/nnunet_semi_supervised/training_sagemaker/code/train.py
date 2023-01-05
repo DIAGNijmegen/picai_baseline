@@ -28,6 +28,7 @@ def main(taskname="Task2203_picai_baseline"):
     parser.add_argument('--workdir', type=str, default="/workdir")
     parser.add_argument('--imagesdir', type=str, default=os.environ.get('SM_CHANNEL_IMAGES', "/input/images"))
     parser.add_argument('--labelsdir', type=str, default=os.environ.get('SM_CHANNEL_LABELS', "/input/picai_labels"))
+    parser.add_argument('--preprocesseddir', type=str, default=os.environ.get('SM_CHANNEL_PREPROCESSED', "/input/preprocessed"))
     parser.add_argument('--scriptsdir', type=str, default=os.environ.get('SM_CHANNEL_SCRIPTS', "/scripts"))
     parser.add_argument('--outputdir', type=str, default=os.environ.get('SM_MODEL_DIR', "/output"))
     parser.add_argument('--checkpointsdir', type=str, default="/checkpoints")
@@ -48,7 +49,7 @@ def main(taskname="Task2203_picai_baseline"):
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # set environment variables
-    os.environ["prepdir"] = str(workdir / "nnUNet_preprocessed")
+    os.environ["prepdir"] = str(args.preprocesseddir)
     if args.nnUNet_n_proc_DA is not None:
         os.environ["nnUNet_n_proc_DA"] = str(args.nnUNet_n_proc_DA)
 
@@ -78,6 +79,7 @@ def main(taskname="Task2203_picai_baseline"):
             "--fold", str(fold),
             "--custom_split", os.path.join(os.environ["prepdir"], taskname, "splits_final.json"),
             "--kwargs='--disable_validation_inference'",
+            "--use_compressed_data",
         ]
         check_call(cmd)
 
