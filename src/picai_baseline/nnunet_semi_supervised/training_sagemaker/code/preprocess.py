@@ -81,16 +81,6 @@ def main(taskname="Task2203_picai_baseline"):
     print("Images folder:", os.listdir(images_dir))
     print("Labels folder:", os.listdir(labels_dir))
 
-    # # install modified nnU-Net
-    # print("Installing modified nnU-Net...")
-    # cmd = [
-    #     "pip",
-    #     "install",
-    #     "-e",
-    #     str(local_scripts_dir / "nnunet"),
-    # ]
-    # check_call(cmd)
-
     # resolve cross-validation splits
     predefined_splits = {
         "picai_pub": picai_pub_splits,
@@ -134,6 +124,7 @@ def main(taskname="Task2203_picai_baseline"):
     check_call(cmd)
 
     # Export preprocessed dataset
+    print("Exporting preprocessed dataset...")
     dst = output_dir / f"nnUNet_preprocessed/{taskname}/"
     dst.parent.mkdir(parents=True, exist_ok=True)
     shutil.copytree(workdir / f"nnUNet_preprocessed/{taskname}/", dst)
