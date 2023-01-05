@@ -49,7 +49,7 @@ def main(taskname="Task2203_picai_baseline"):
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # set environment variables
-    os.environ["prepdir"] = str(args.preprocesseddir)
+    os.environ["prepdir"] = str(os.path.join(args.preprocesseddir, "nnUNet_preprocessed"))
     if args.nnUNet_n_proc_DA is not None:
         os.environ["nnUNet_n_proc_DA"] = str(args.nnUNet_n_proc_DA)
 
