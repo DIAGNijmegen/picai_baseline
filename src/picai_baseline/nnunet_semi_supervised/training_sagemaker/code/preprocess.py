@@ -56,7 +56,6 @@ def main(taskname="Task2203_picai_baseline"):
     labels_dir = Path(args.labelsdir)
     output_dir = Path(args.outputdir)
     scripts_dir = Path(args.scriptsdir)
-    checkpoints_dir = Path(args.checkpointsdir)
     splits_path = workdir / f"splits/{taskname}/splits.json"
 
     workdir.mkdir(parents=True, exist_ok=True)
@@ -82,15 +81,15 @@ def main(taskname="Task2203_picai_baseline"):
     print("Images folder:", os.listdir(images_dir))
     print("Labels folder:", os.listdir(labels_dir))
 
-    # install modified nnU-Net
-    print("Installing modified nnU-Net...")
-    cmd = [
-        "pip",
-        "install",
-        "-e",
-        str(local_scripts_dir / "nnunet"),
-    ]
-    check_call(cmd)
+    # # install modified nnU-Net
+    # print("Installing modified nnU-Net...")
+    # cmd = [
+    #     "pip",
+    #     "install",
+    #     "-e",
+    #     str(local_scripts_dir / "nnunet"),
+    # ]
+    # check_call(cmd)
 
     # resolve cross-validation splits
     predefined_splits = {
