@@ -106,7 +106,7 @@ def main(taskname="Task2203_picai_baseline"):
     print("Preprocessing data...")
     cmd = [
         "python",
-        (local_scripts_dir / "picai_baseline/src/picai_baseline/prepare_data_semi_supervised.py").as_posix(),
+        (local_scripts_dir / "prepare_data_semi_supervised.py").as_posix(),
         "--workdir", workdir.as_posix(),
         "--imagesdir", images_dir.as_posix(),
         "--labelsdir", labels_dir.as_posix(),
