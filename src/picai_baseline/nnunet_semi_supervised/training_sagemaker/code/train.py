@@ -78,7 +78,7 @@ def main(taskname="Task2203_picai_baseline"):
             "--trainer", "nnUNetTrainerV2_Loss_FL_and_CE_checkpoints",
             "--fold", str(fold),
             "--custom_split", os.path.join(os.environ["prepdir"], taskname, "splits_final.json"),
-            "--kwargs='--disable_validation_inference'",
+            "--kwargs=--disable_validation_inference",
             "--use_compressed_data",
         ]
         check_call(cmd)
