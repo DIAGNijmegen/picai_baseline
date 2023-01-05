@@ -57,6 +57,7 @@ def main(taskname="Task2203_picai_baseline"):
     output_dir = Path(args.outputdir)
     scripts_dir = Path(args.scriptsdir)
     splits_path = workdir / f"splits/{taskname}/splits.json"
+    local_scripts_dir = workdir / "code"
 
     workdir.mkdir(parents=True, exist_ok=True)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -67,8 +68,7 @@ def main(taskname="Task2203_picai_baseline"):
 
     # extract scripts
     with zipfile.ZipFile(scripts_dir / "code.zip", 'r') as zf:
-        zf.extractall(workdir)
-    local_scripts_dir = workdir / "code"
+        zf.extractall(local_scripts_dir)
 
     # descibe input data
     print(f"workdir: {workdir}")
