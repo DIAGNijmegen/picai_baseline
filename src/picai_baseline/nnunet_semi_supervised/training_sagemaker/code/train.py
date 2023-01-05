@@ -33,6 +33,8 @@ def main(taskname="Task2203_picai_baseline"):
     parser.add_argument('--outputdir', type=str, default=os.environ.get('SM_MODEL_DIR', "/output"))
     parser.add_argument('--checkpointsdir', type=str, default="/checkpoints")
     parser.add_argument('--nnUNet_n_proc_DA', type=int, default=None)
+    parser.add_argument('--folds', type=int, nargs="+", default=(0, 1, 2, 3, 4),
+                        help="Folds to train. Default: 0 1 2 3 4")
 
     args, _ = parser.parse_known_args()
 
@@ -69,8 +71,7 @@ def main(taskname="Task2203_picai_baseline"):
     print("Labels folder:", os.listdir(labels_dir))
 
     # Train models
-    folds = range(5)  # range(5) for 5-fold cross-validation
-    for fold in folds:
+    for fold in args.folds:
         print(f"Training fold {fold}...")
         cmd = [
             "nnunet", "plan_train", str(taskname), workdir.as_posix(),
@@ -86,7 +87,7 @@ def main(taskname="Task2203_picai_baseline"):
     # Export trained models
     results_dir = checkpoints_dir / f"nnUNet/3d_fullres/{taskname}/nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1"
     export_dir = output_dir / f"picai_nnunet_gc_algorithm/results/nnUNet/3d_fullres/{taskname}/nnUNetTrainerV2_Loss_FL_and_CE_checkpoints__nnUNetPlansv2.1"
-    for fold in folds:
+    for fold in args.folds:
         src = results_dir / f"fold_{fold}/model_best.model"
         dst = export_dir / f"fold_{fold}/model_best.model"
         dst.mkdir(parents=True, exist_ok=True)
