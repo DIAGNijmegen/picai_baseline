@@ -127,8 +127,7 @@ def main(taskname="Task2203_picai_baseline"):
     # Preprocess data with nnU-Net
     print("Preprocessing data with nnU-Net...")
     cmd = [
-        "python", (local_scripts_dir / "picai_baseline/src/picai_baseline/nnunet/training_docker/nnunet_wrapper.py").as_posix(),
-        "plan_train", str(taskname), workdir.as_posix(),
+        "nnunet", "plan_train", str(taskname), workdir.as_posix(),
         "--custom_split", str(splits_path),
         "--kwargs='--disable_validation_inference'",
         "--plan_only",
