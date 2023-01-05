@@ -21,5 +21,7 @@ shutil.copy(scripts_dir / "picai_baseline/src/picai_baseline/nnunet/training_doc
             scripts_dir / "nnunet/nnunet/training/network_training/nnUNet_variants/loss_function/nnUNetTrainerV2_Loss_CE_checkpoints.py")
 shutil.copy(scripts_dir / "picai_baseline/src/picai_baseline/nnunet/training_docker/nnUNetTrainerV2_Loss_FL_and_CE.py",
             scripts_dir / "nnunet/nnunet/training/network_training/nnUNet_variants/loss_function/nnUNetTrainerV2_Loss_FL_and_CE.py")
+shutil.copy(scripts_dir / "picai_baseline/src/picai_baseline/nnunet/training_docker/run_training.py",
+            scripts_dir / "nnunet/nnunet/run/run_training.py")
 shutil.copy(scripts_dir / "nnunet_custom_setup.py",
             scripts_dir / "nnunet/setup.py")
