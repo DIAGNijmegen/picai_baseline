@@ -4,6 +4,11 @@ from sagemaker.pytorch import PyTorch
 sagemaker_session = LocalSession()
 sagemaker_session.config = {'local': {'local_code': True}}
 
+# To run SageMaker locally, you need a role that has access to AWS SageMaker and S3.
+# You can call this role `SageMakerRole` (as below), or you can change the role name below.
+# You can use the following command to configure your AWS CLI:
+# aws configure
+
 # Configure PyTorch (no training happens yet)
 pytorch_estimator = PyTorch(
     entry_point='train.py',
