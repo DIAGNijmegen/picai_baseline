@@ -52,6 +52,10 @@ COPY run_training.py /tmp/run_training.py
 RUN SITE_PKG=`pip3 show nnunet | grep "Location:" | awk '{print $2}'` && \
     mv /tmp/run_training.py "$SITE_PKG/nnunet/run/run_training.py"
 
+# copy custom preprocessing files
+COPY prepare_data.py /opt/algorithm/prepare_data.py
+COPY prepare_data_semi_supervised.py /opt/algorithm/prepare_data_semi_supervised.py
+
 # Configure entrypoint
 COPY --chown=user nnunet_wrapper.py /home/user/nnunet_wrapper.py
 RUN chmod +x /home/user/nnunet_wrapper.py && \
