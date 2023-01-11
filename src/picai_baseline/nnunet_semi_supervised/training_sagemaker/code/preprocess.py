@@ -108,8 +108,7 @@ def main(taskname="Task2203_picai_baseline"):
     # Also, we combine the provided human-expert annotations with the AI-derived annotations.
     print("Preprocessing data...")
     cmd = [
-        "python",
-        (local_scripts_dir / "prepare_data_semi_supervised.py").as_posix(),
+        "python", "-m", "picai_baseline.prepare_data_semi_supervised",
         "--workdir", workdir.as_posix(),
         "--imagesdir", images_dir.as_posix(),
         "--labelsdir", labels_dir.as_posix(),
