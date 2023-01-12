@@ -13,7 +13,13 @@ Please feel free to raise any issues you encounter [here](https://github.com/DIA
 
 
 ## Installation
-`picai_baseline` can be cloned and pip-installed:
+`picai_baseline` can be pip-installed:
+
+```bash
+pip install picai_baseline
+```
+
+Alternatively, `picai_baseline` can be installed from source:
 
 ```bash
 git clone https://github.com/DIAGNijmegen/picai_baseline
@@ -21,13 +27,7 @@ cd picai_baseline
 pip install -e .
 ```
 
-This ensures the scripts are present locally, which enables you to run the provided Python scripts. Additionally, this allows you to modify the baseline solutions, due to the `-e` option.
-
-Alternatively, `picai_baseline` can be pip-installed directly:
-
-```
-pip install git+https://github.com/DIAGNijmegen/picai_baseline
-```
+This ensures the scripts are present locally, which enables you to run the provided Python scripts. Additionally, this allows you to modify the baseline solutions, due to the `-e` option. Furthermore, this ensures the latest version is installed.
 
 
 ## General Setup
