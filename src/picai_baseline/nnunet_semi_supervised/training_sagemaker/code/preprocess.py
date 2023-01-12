@@ -19,7 +19,8 @@ import shutil
 from pathlib import Path
 from subprocess import check_call
 
-from picai_baseline.prepare_data_semi_supervised import prepare_data
+from picai_baseline.prepare_data_semi_supervised import \
+    prepare_data_semi_supervised
 from picai_baseline.splits.picai import nnunet_splits as picai_pub_splits
 from picai_baseline.splits.picai_debug import \
     nnunet_splits as picai_debug_splits
@@ -98,7 +99,7 @@ def main(taskname="Task2203_picai_baseline"):
     # Convert MHA Archive to nnU-Net Raw Data Archive
     # Also, we combine the provided human-expert annotations with the AI-derived annotations.
     print("Preprocessing data...")
-    prepare_data(
+    prepare_data_semi_supervised(
         workdir=workdir,
         imagesdir=images_dir,
         labelsdir=labels_dir,
