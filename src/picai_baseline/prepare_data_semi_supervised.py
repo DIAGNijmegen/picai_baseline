@@ -66,7 +66,12 @@ def prepare_data(
     """
 
     # prepare preprocessing kwargs
-    preprocessing_kwargs = json.loads(preprocessing_kwargs) if preprocessing_kwargs else {}
+    if preprocessing_kwargs is None or preprocessing_kwargs == "":
+        preprocessing_kwargs = {}
+    elif isinstance(preprocessing_kwargs, str):
+        preprocessing_kwargs = json.loads(preprocessing_kwargs)
+    if not isinstance(preprocessing_kwargs, dict):
+        raise ValueError("preprocessing_kwargs must be a dict or None")
     if spacing:
         if "spacing" in preprocessing_kwargs:
             raise ValueError("Cannot specify both --spacing and --preprocessing_kwargs['spacing']")
@@ -192,6 +197,8 @@ if __name__ == "__main__":
                             "E.g.: `{"crop_only": true}`. Must be valid json.')
     parser.add_argument("--splits", type=str, default="picai_pub",
                         help="Splits to save for cross-validation. Available: picai_pub, picai_pubpriv.")
+    parser.add_argument("--task", type=str, default="Task2203_picai_baseline",
+                        help="Task name (default: Task2203_picai_baseline)")
     try:
         args = parser.parse_args()
     except Exception as e:
@@ -208,5 +215,6 @@ if __name__ == "__main__":
         matrix_size=args.matrix_size,
         preprocessing_kwargs=args.preprocessing_kwargs,
         splits=args.splits,
+        task=args.task,
     )
     print("Finished.")
