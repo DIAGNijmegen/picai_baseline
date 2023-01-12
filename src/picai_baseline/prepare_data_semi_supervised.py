@@ -48,7 +48,7 @@ def preprocess_picai_annotation(lbl: sitk.Image) -> sitk.Image:
     return lbl_new
 
 
-def prepare_data(
+def prepare_data_semi_supervised(
     workdir: Union[Path, str] = "/workdir",
     inputdir: Union[Path, str] = "/input",
     imagesdir: str = "images",
@@ -206,7 +206,7 @@ if __name__ == "__main__":
         print("Retrying with only the known arguments...")
         args, _ = parser.parse_known_args()
 
-    prepare_data(
+    prepare_data_semi_supervised(
         workdir=args.workdir,
         inputdir=args.inputdir,
         imagesdir=args.imagesdir,

@@ -15,40 +15,43 @@
 import argparse
 import os
 
-from picai_baseline.prepare_data_semi_supervised import prepare_data
+from picai_baseline.prepare_data_semi_supervised import \
+    prepare_data_semi_supervised
 
 if __name__ == '__main__':
     # Set up command line arguments
-    parser = argparse.ArgumentParser()
-    subparsers = parser.add_subparsers()
+    argparser = argparse.ArgumentParser()
+    subparsers = argparser.add_subparsers()
 
     # parse command line arguments
-    p = subparsers.add_parser('prepare_data_semi_supervised')
-    p.add_argument("--workdir", type=str, default=os.environ.get("workdir", "/workdir"),
+    parser = subparsers.add_parser('prepare_data_semi_supervised')
+    parser.add_argument("--workdir", type=str, default=os.environ.get("workdir", "/workdir"),
                         help="Path to the working directory (default: /workdir, or the environment variable 'workdir')")
-    p.add_argument("--inputdir", type=str, default=os.environ.get("inputdir", "/input"),
+    parser.add_argument("--inputdir", type=str, default=os.environ.get("inputdir", "/input"),
                         help="Path to the input dataset (default: /input, or the environment variable 'inputdir')")
-    p.add_argument("--imagesdir", type=str, default="images",
+    parser.add_argument("--imagesdir", type=str, default="images",
                         help="Path to the images, relative to --inputdir (default: /input/images)")
-    p.add_argument("--labelsdir", type=str, default="picai_labels",
+    parser.add_argument("--labelsdir", type=str, default="picai_labels",
                         help="Path to the labels, relative to --inputdir (root of picai_labels) (default: /input/picai_labels)")
-    p.add_argument("--spacing", type=float, nargs="+", required=False,
+    parser.add_argument("--spacing", type=float, nargs="+", required=False,
                         help="Spacing to preprocess images to. Default: keep as-is.")
-    p.add_argument("--matrix_size", type=int, nargs="+", required=False,
+    parser.add_argument("--matrix_size", type=int, nargs="+", required=False,
                         help="Matrix size to preprocess images to. Default: keep as-is.")
-    p.add_argument("--preprocessing_kwargs", type=str, required=False,
+    parser.add_argument("--preprocessing_kwargs", type=str, required=False,
                         help='Preprocessing kwargs to pass to the MHA2nnUNetConverter. " + \
                             "E.g.: `{"crop_only": true}`. Must be valid json.')
-    p.add_argument("--splits", type=str, default="picai_pub",
+    parser.add_argument("--splits", type=str, default="picai_pub",
                         help="Splits to save for cross-validation. Available: picai_pub, picai_pubpriv.")
+    parser.add_argument("--task", type=str, default="Task2203_picai_baseline",
+                        help="Task name (default: Task2203_picai_baseline)")
     try:
-        args = parser.parse_args()
+        args = argparser.parse_args()
     except Exception as e:
         print(f"Parsing all arguments failed: {e}")
         print("Retrying with only the known arguments...")
-        args, _ = parser.parse_known_args()
+        args, _ = argparser.parse_known_args()
 
-    prepare_data(
+    prepare_data_semi_supervised(
         workdir=args.workdir,
         inputdir=args.inputdir,
         imagesdir=args.imagesdir,
@@ -57,5 +60,6 @@ if __name__ == '__main__':
         matrix_size=args.matrix_size,
         preprocessing_kwargs=args.preprocessing_kwargs,
         splits=args.splits,
+        task=args.task,
     )
     print("Finished.")
