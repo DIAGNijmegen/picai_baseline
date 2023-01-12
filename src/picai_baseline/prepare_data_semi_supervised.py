@@ -96,7 +96,7 @@ def prepare_data_semi_supervised(
     # relative paths
     annotations_dir_human_expert = labelsdir / "csPCa_lesion_delineations/human_expert/resampled/"
     annotations_dir_ai_derived = labelsdir / "csPCa_lesion_delineations/AI/Bosma22a/"
-    annotations_dir = labelsdir / "csPCa_lesion_delineations/combined/"
+    annotations_dir = workdir / "csPCa_lesion_delineations/combined/"
     mha2nnunet_settings_path = workdir / "mha2nnunet_settings" / (task + ".json")
     nnUNet_raw_data_path = workdir / "nnUNet_raw_data"
     nnUNet_task_dir = nnUNet_raw_data_path / task
