@@ -61,17 +61,11 @@ def main(taskname="Task2203_picai_baseline"):
     print("Images folder:", os.listdir(images_dir))
     print("Labels folder:", os.listdir(labels_dir))
 
-    # copy dataset.json to workdir (for compatibility with nnU-Net's verify_dataset_integrity)
-    src = preprocessed_dir / "nnUNet_preprocessed" / taskname / "dataset.json"
-    dst = workdir / "nnUNet_raw_data" / taskname / "dataset.json"
-    dst.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy(src, dst)
-
     # Train models
     for fold in args.folds:
         print(f"Training fold {fold}...")
         cmd = [
-            "nnunet", "plan_train", str(taskname), workdir.as_posix(),
+            "nnunet", "plan_train", str(taskname), preprocessed_dir.as_posix(),
             "--results", checkpoints_dir.as_posix(),
             "--trainer", "nnUNetTrainerV2_Loss_FL_and_CE_checkpoints",
             "--fold", str(fold),
