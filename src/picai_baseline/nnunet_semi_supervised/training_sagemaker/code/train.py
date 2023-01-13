@@ -62,7 +62,10 @@ def main(taskname="Task2203_picai_baseline"):
     print("Labels folder:", os.listdir(labels_dir))
 
     # copy dataset.json to workdir (for compatibility with nnU-Net's verify_dataset_integrity)
-    shutil.copy(preprocessed_dir / "nnUNet_preprocessed" / taskname / "dataset.json", workdir / "nnUNet_raw_data" / taskname / "dataset.json")
+    src = preprocessed_dir / "nnUNet_preprocessed" / taskname / "dataset.json"
+    dst = workdir / "nnUNet_raw_data" / taskname / "dataset.json"
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy(src, dst)
 
     # Train models
     for fold in args.folds:
