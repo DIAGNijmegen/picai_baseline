@@ -42,12 +42,13 @@ def main(taskname="Task2203_picai_baseline"):
     labels_dir = Path(args.labelsdir)
     output_dir = Path(args.outputdir)
     checkpoints_dir = Path(args.checkpointsdir)
+    preprocessed_dir = Path(args.preprocesseddir)
 
     workdir.mkdir(parents=True, exist_ok=True)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # set environment variables
-    os.environ["prepdir"] = str(os.path.join(args.preprocesseddir, "nnUNet_preprocessed"))
+    os.environ["prepdir"] = (preprocessed_dir / "nnUNet_preprocessed").as_posix()
     if args.nnUNet_n_proc_DA is not None:
         os.environ["nnUNet_n_proc_DA"] = str(args.nnUNet_n_proc_DA)
 
@@ -59,6 +60,9 @@ def main(taskname="Task2203_picai_baseline"):
 
     print("Images folder:", os.listdir(images_dir))
     print("Labels folder:", os.listdir(labels_dir))
+
+    # copy dataset.json to workdir (for compatibility with nnU-Net's verify_dataset_integrity)
+    shutil.copy(preprocessed_dir / "dataset.json", workdir / "nnUNet_raw_data" / taskname / "dataset.json")
 
     # Train models
     for fold in args.folds:
