@@ -225,10 +225,13 @@ def plan_train(argv):
         taskid = get_task_id(args.task)
         taskdir = datadir / 'nnUNet_preprocessed' / args.task
 
-        if path_exists(taskdir):
+        if path_exists(taskdir) or path_exists(prepdir / args.task):
+            # Found plans and preprocessed data (maybe need to copy to local node)
             if args.custom_split:
-                remote_splits_file = taskdir / 'splits_final.json'
-                if not remote_splits_file.exists() or checksum(remote_splits_file) != checksum(args.custom_split):
+                splits_file = taskdir / 'splits_final.json'
+                if not splits_file.exists():
+                    splits_file = prepdir / args.task / 'splits_final.json'
+                if not splits_file.exists() or checksum(splits_file) != checksum(args.custom_split):
                     print(f"[#] Found plans and preprocessed data for {args.task}"
                           " - but you also provided a custom split which is different"
                           " from the present split, this is not permitted")
@@ -237,11 +240,12 @@ def plan_train(argv):
             if args.plan_only:
                 print(f'[#] Found plans and preprocessed data for {args.task} - nothing to do')
             else:
-                print(f'[#] Found plans and preprocessed data for {args.task} - copying to compute node')
-                if not os.path.exists(prepdir / args.task):
+                print(f'[#] Found plans and preprocessed data for {args.task}')
+                if not (prepdir / args.task).exists():
+                    print("[#] Copying plans and preprocessed data to compute node")
                     prepdir.mkdir(parents=True, exist_ok=True)
                     shutil_sol.copytree(taskdir, prepdir / args.task)
-                print(f'[#] Found plans and preprocessed data for {args.task} - copied to compute node')
+                    print(f'[#] Copied plans and preprocessed data to compute node')
         else:
             # Plans and data not available yet, run preprocessing
             print('[#] Creating plans and preprocessing data')
