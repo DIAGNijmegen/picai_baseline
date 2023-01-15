@@ -65,7 +65,7 @@ def main(taskname="Task2203_picai_baseline"):
     for fold in args.folds:
         print(f"Training fold {fold}...")
         cmd = [
-            "nnunet", "plan_train", str(taskname), preprocessed_dir.as_posix(),
+            "nnunet", "plan_train", str(taskname), workdir.as_posix(),
             "--results", checkpoints_dir.as_posix(),
             "--trainer", "nnUNetTrainerV2_Loss_FL_and_CE_checkpoints",
             "--fold", str(fold),
