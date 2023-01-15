@@ -7,9 +7,7 @@ Define the Docker container that can be used to preprocess the data, and train t
 ## 2. Preprocessing
 This script is used to preprocess the dataset, in our example for training within the nnU-Net framework. The script expects to be passed a few arguments, including the directories where the images and labels can be found.
 
-The script extracts custom code (from `code.zip`) for usage during preprocessing, which contains the [PI-CAI semi-supervised data preprocessing script](https://github.com/DIAGNijmegen/picai_baseline/blob/main/src/picai_baseline/prepare_data_semi_supervised.py) in this example.
-
-The script then loads the cross-validation splits for the dataset, either from a JSON file specified by the splits argument, or from one of several predefined split configurations specified by the splits argument. To debug this script, you can use the public PI-CAI Training and Development dataset (`--splits=picai_pub`), which can be changed to the PI-CAI Public and Private Training dataset at submission (`--splits=picai_pubpriv`).
+This script loads the cross-validation splits for the dataset, either from a JSON file specified by the splits argument, or from one of several predefined split configurations specified by the splits argument. To debug this script, you can use the public PI-CAI Training and Development dataset (`--splits=picai_pub`), which can be changed to the PI-CAI Public and Private Training dataset at submission (`--splits=picai_pubpriv`).
 
 The provided preprocessing script follows the preprocessing steps outlined in the [PI-CAI Baseline tutorial](https://github.com/DIAGNijmegen/picai_baseline), plus the conversion to the nnU-Net preprocessed format.
 
@@ -21,11 +19,13 @@ Note: no training happens yet. Ideally, this step should not require a GPU.
 ## 3. Training
 This script is for training your method, with the provided example training a semi-supervised nnU-Net model. The model is trained on a dataset of images and corresponding labels (segmentation masks), which were preprocessed in step 2. Preprocessing. The script takes in several arguments including the input image and label directories, output directory, and number of folds to train the model on.
 
-The script first defines a function `main()` that sets up an argument parser to parse the input arguments. Then it sets up various paths and directories based on the input arguments and environment variables. It also extracts code from a zip file located in the scripts directory. You can provide your custom scripts in this `code.zip` file.
+The script first defines a function `main()` that sets up an argument parser to parse the input arguments. Then it sets up various paths and directories based on the input arguments and environment variables.
 
-The train script trains the model on the specified folds by calling the 'nnunet' command, which is defined through the setup in the definition of the Docker container. 
+The train script trains the model on the specified folds by calling the `nnunet` command, which is defined through the setup in the definition of the Docker container. 
 
 Finally, all necessary resources for inference are exported to the directory specified by `args.outputdir`. Please note, that all other resources are destroyed! As such, supporting files for inference (like `plans.pkl` for nnU-Net) must be exported too!
+
+Each training session may run for 5 days at most. As this is typically insufficient to train all components, the training pipeline must be divided into chunks. For the nnU-Net baseline in this example, we made the fold configurable. Each fold takes ~2 days to train, so we can split up training in appropriate chunks.
 
 
 ## Folder structure
