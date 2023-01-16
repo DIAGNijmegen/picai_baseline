@@ -15,7 +15,6 @@
 import argparse
 import os
 import shutil
-import zipfile
 from pathlib import Path
 from subprocess import check_call
 
@@ -29,7 +28,6 @@ def main(taskname="Task2203_picai_baseline"):
     parser.add_argument('--imagesdir', type=str, default=os.environ.get('SM_CHANNEL_IMAGES', "/input/images"))
     parser.add_argument('--labelsdir', type=str, default=os.environ.get('SM_CHANNEL_LABELS', "/input/picai_labels"))
     parser.add_argument('--preprocesseddir', type=str, default=os.environ.get('SM_CHANNEL_PREPROCESSED', "/input/preprocessed"))
-    parser.add_argument('--scriptsdir', type=str, default=os.environ.get('SM_CHANNEL_SCRIPTS', "/scripts"))
     parser.add_argument('--outputdir', type=str, default=os.environ.get('SM_MODEL_DIR', "/output"))
     parser.add_argument('--checkpointsdir', type=str, default="/checkpoints")
     parser.add_argument('--nnUNet_n_proc_DA', type=int, default=None)
@@ -43,30 +41,23 @@ def main(taskname="Task2203_picai_baseline"):
     images_dir = Path(args.imagesdir)
     labels_dir = Path(args.labelsdir)
     output_dir = Path(args.outputdir)
-    scripts_dir = Path(args.scriptsdir)
     checkpoints_dir = Path(args.checkpointsdir)
-    local_scripts_dir = workdir / "code"
+    preprocessed_dir = Path(args.preprocesseddir)
 
     workdir.mkdir(parents=True, exist_ok=True)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # set environment variables
-    os.environ["prepdir"] = str(os.path.join(args.preprocesseddir, "nnUNet_preprocessed"))
+    os.environ["prepdir"] = (preprocessed_dir / "nnUNet_preprocessed").as_posix()
     if args.nnUNet_n_proc_DA is not None:
         os.environ["nnUNet_n_proc_DA"] = str(args.nnUNet_n_proc_DA)
-
-    # extract scripts
-    with zipfile.ZipFile(scripts_dir / "code.zip", 'r') as zf:
-        zf.extractall(local_scripts_dir)
 
     # descibe input data
     print(f"workdir: {workdir}")
     print(f"images_dir: {images_dir}")
     print(f"labels_dir: {labels_dir}")
     print(f"output_dir: {output_dir}")
-    print(f"scripts_dir: {local_scripts_dir}")
 
-    print("Scripts folder:", os.listdir(local_scripts_dir))
     print("Images folder:", os.listdir(images_dir))
     print("Labels folder:", os.listdir(labels_dir))
 

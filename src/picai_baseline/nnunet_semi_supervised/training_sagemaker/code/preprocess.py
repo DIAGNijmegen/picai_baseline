@@ -16,11 +16,11 @@ import argparse
 import json
 import os
 import shutil
-import zipfile
 from pathlib import Path
 from subprocess import check_call
 
-from picai_baseline.prepare_data_semi_supervised import prepare_data
+from picai_baseline.prepare_data_semi_supervised import \
+    prepare_data_semi_supervised
 from picai_baseline.splits.picai import nnunet_splits as picai_pub_splits
 from picai_baseline.splits.picai_debug import \
     nnunet_splits as picai_debug_splits
@@ -40,7 +40,6 @@ def main(taskname="Task2203_picai_baseline"):
     parser.add_argument('--workdir', type=str, default="/workdir")
     parser.add_argument('--imagesdir', type=str, default=os.environ.get('SM_CHANNEL_IMAGES', "/input/images"))
     parser.add_argument('--labelsdir', type=str, default=os.environ.get('SM_CHANNEL_LABELS', "/input/picai_labels"))
-    parser.add_argument('--scriptsdir', type=str, default=os.environ.get('SM_CHANNEL_SCRIPTS', "/scripts"))
     parser.add_argument('--outputdir', type=str, default=os.environ.get('SM_MODEL_DIR', "/output"))
     parser.add_argument('--splits', type=str, default="picai_pubpriv",
                         help="Cross-validation splits. Can be a path to a json file or one of the predefined splits: "
@@ -55,9 +54,7 @@ def main(taskname="Task2203_picai_baseline"):
     images_dir = Path(args.imagesdir)
     labels_dir = Path(args.labelsdir)
     output_dir = Path(args.outputdir)
-    scripts_dir = Path(args.scriptsdir)
     splits_path = workdir / f"splits/{taskname}/splits.json"
-    local_scripts_dir = workdir / "code"
 
     workdir.mkdir(parents=True, exist_ok=True)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -70,18 +67,12 @@ def main(taskname="Task2203_picai_baseline"):
     os.environ["nnUNet_tf"] = str(args.nnUNet_tf)
     os.environ["nnUNet_tl"] = str(args.nnUNet_tl)
 
-    # extract scripts
-    with zipfile.ZipFile(scripts_dir / "code.zip", 'r') as zf:
-        zf.extractall(local_scripts_dir)
-
     # descibe input data
     print(f"workdir: {workdir}")
     print(f"images_dir: {images_dir}")
     print(f"labels_dir: {labels_dir}")
     print(f"output_dir: {output_dir}")
-    print(f"scripts_dir: {local_scripts_dir}")
 
-    print("Scripts folder:", os.listdir(local_scripts_dir))
     print("Images folder:", os.listdir(images_dir))
     print("Labels folder:", os.listdir(labels_dir))
 
@@ -108,7 +99,7 @@ def main(taskname="Task2203_picai_baseline"):
     # Convert MHA Archive to nnU-Net Raw Data Archive
     # Also, we combine the provided human-expert annotations with the AI-derived annotations.
     print("Preprocessing data...")
-    prepare_data(
+    prepare_data_semi_supervised(
         workdir=workdir,
         imagesdir=images_dir,
         labelsdir=labels_dir,
