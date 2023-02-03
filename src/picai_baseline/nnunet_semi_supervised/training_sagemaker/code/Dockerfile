@@ -1,5 +1,5 @@
 FROM joeranbosma/picai_nnunet:latest
 
-COPY --chown=user train.py /home/user/train.py
-RUN chmod +x /home/user/train.py && \
-    ln -s /home/user/train.py /usr/local/bin/train
+COPY --chown=user train.py /opt/algorithm/train.py
+RUN chmod +x /opt/algorithm/train.py && \
+    ln -s /opt/algorithm/train.py /usr/local/bin/train
