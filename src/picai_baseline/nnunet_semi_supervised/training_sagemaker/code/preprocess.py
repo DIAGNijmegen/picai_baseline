@@ -33,7 +33,7 @@ from picai_baseline.splits.picai_pubpriv_nnunet import \
 
 
 def main(taskname="Task2203_picai_baseline"):
-    """Train nnU-Net semi-supervised model."""
+    """Preprocess data for nnU-Net semi-supervised model."""
     parser = argparse.ArgumentParser()
 
     # input data and model directories
