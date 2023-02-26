@@ -1,4 +1,5 @@
 import argparse
+import json
 from pathlib import Path
 from typing import Union
 
@@ -7,7 +8,15 @@ from picai_prep.data_utils import atomic_image_write
 from picai_prep.preprocessing import resample_to_reference_scan
 from tqdm import tqdm
 
-from picai_baseline.splits.picai_pubpriv import valid_splits
+from picai_baseline.splits.picai import nnunet_splits as picai_pub_splits
+from picai_baseline.splits.picai_debug import \
+    nnunet_splits as picai_debug_splits
+from picai_baseline.splits.picai_nnunet import \
+    nnunet_splits as picai_pub_nnunet_splits
+from picai_baseline.splits.picai_pubpriv import \
+    nnunet_splits as picai_pubpriv_splits
+from picai_baseline.splits.picai_pubpriv_nnunet import \
+    nnunet_splits as picai_pubpriv_nnunet_splits
 
 
 def resample_annotations(
@@ -16,7 +25,8 @@ def resample_annotations(
     mountpoint: Union[Path, str],
     workdir: Union[Path, str],
     in_dir_data: Union[Path, str],
-    prediction_folder_name: str = "picai_pubpriv_predictions_ensemble_model_best_automatic_annotations"
+    prediction_folder_name: str = "picai_pubpriv_predictions_ensemble_model_best_automatic_annotations",
+    splits: str = "picai_pubpriv",
 ):
     # paths
     mountpoint = Path(mountpoint)
@@ -30,7 +40,24 @@ def resample_annotations(
     
     out_dir_ava.mkdir(parents=True, exist_ok=True)
 
-    for fold, split in valid_splits.items():
+    # resolve cross-validation splits
+    predefined_splits = {
+        "picai_pub": picai_pub_splits,
+        "picai_pubpriv": picai_pubpriv_splits,
+        "picai_pub_nnunet": picai_pub_nnunet_splits,
+        "picai_pubpriv_nnunet": picai_pubpriv_nnunet_splits,
+        "picai_debug": picai_debug_splits,
+    }
+    if args.splits in predefined_splits:
+        splits = predefined_splits[splits]
+    else:
+        # `splits` should be the path to a json file containing the splits
+        print(f"Loading splits from {splits}")
+        with open(splits, "r") as f:
+            splits = json.load(f)
+
+    # resample annotations
+    for fold, split in splits.items():
         for subject_id in tqdm(split['subject_list'], desc=f"Fold {fold}"):
             # paths
             lbl_manual_path = in_dir_annot / f"{subject_id}.nii.gz"
@@ -65,6 +92,9 @@ if __name__ == '__main__':
     parser.add_argument("--workdir", type=str, default="pelvis/projects/joeran/picai/pubpriv-workdir", help="The path to the workdir (relative to the mountpoint).")
     parser.add_argument("--in-dir-data", type=str, default="pelvis/data/prostate-MRI/picai/pubpriv_training/v1", help="The path to the input data directory (relative to the mountpoint).")
     parser.add_argument("--prediction_folder_name", type=str, default="picai_pubpriv_predictions_ensemble_model_best_automatic_annotations")
+    parser.add_argument('--splits', type=str, default="picai_pubpriv",
+                        help="Cross-validation splits. Can be a path to a json file or one of the predefined splits: "
+                             "picai_pub, picai_pubpriv, picai_pub_nnunet, picai_pubpriv_nnunet, picai_debug.")
     args = parser.parse_args()
 
     resample_annotations(
