@@ -55,6 +55,10 @@ def resample_annotations(
         print(f"Loading splits from {splits}")
         with open(splits, "r") as f:
             splits = json.load(f)
+        if isinstance(splits, list):
+            splits = {"subject_list": splits}
+        if "subject_list" in splits:
+            splits = {"NA": splits}
 
     # resample annotations
     for fold, split in splits.items():
