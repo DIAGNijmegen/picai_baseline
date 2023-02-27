@@ -26,7 +26,7 @@ def resample_annotations(
     workdir: Union[Path, str],
     in_dir_data: Union[Path, str],
     prediction_folder_name: str = "picai_pubpriv_predictions_ensemble_model_best_automatic_annotations",
-    splits: str = "picai_pubpriv",
+    splits: Union[str, Path] = "picai_pubpriv",
 ):
     # paths
     mountpoint = Path(mountpoint)
@@ -48,7 +48,7 @@ def resample_annotations(
         "picai_pubpriv_nnunet": picai_pubpriv_nnunet_splits,
         "picai_debug": picai_debug_splits,
     }
-    if args.splits in predefined_splits:
+    if isinstance(splits, str) and splits in predefined_splits:
         splits = predefined_splits[splits]
     else:
         # `splits` should be the path to a json file containing the splits
