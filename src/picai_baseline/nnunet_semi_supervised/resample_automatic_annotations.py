@@ -104,4 +104,5 @@ if __name__ == '__main__':
         workdir=args.workdir,
         in_dir_data=args.in_dir_data,
         prediction_folder_name=args.prediction_folder_name,
+        splits=args.splits,
     )
