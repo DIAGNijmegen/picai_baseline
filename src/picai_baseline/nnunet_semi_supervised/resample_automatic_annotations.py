@@ -8,15 +8,15 @@ from picai_prep.data_utils import atomic_image_write
 from picai_prep.preprocessing import resample_to_reference_scan
 from tqdm import tqdm
 
-from picai_baseline.splits.picai import nnunet_splits as picai_pub_splits
+from picai_baseline.splits.picai import valid_splits as picai_pub_splits
 from picai_baseline.splits.picai_debug import \
-    nnunet_splits as picai_debug_splits
+    valid_splits as picai_debug_splits
 from picai_baseline.splits.picai_nnunet import \
-    nnunet_splits as picai_pub_nnunet_splits
+    valid_splits as picai_pub_nnunet_splits
 from picai_baseline.splits.picai_pubpriv import \
-    nnunet_splits as picai_pubpriv_splits
+    valid_splits as picai_pubpriv_splits
 from picai_baseline.splits.picai_pubpriv_nnunet import \
-    nnunet_splits as picai_pubpriv_nnunet_splits
+    valid_splits as picai_pubpriv_nnunet_splits
 
 
 def resample_annotations(
