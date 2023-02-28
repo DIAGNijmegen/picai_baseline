@@ -1,3 +1,5 @@
+#!/opt/conda/bin/python
+
 #  Copyright 2022 Diagnostic Image Analysis Group, Radboudumc, Nijmegen, The Netherlands
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");

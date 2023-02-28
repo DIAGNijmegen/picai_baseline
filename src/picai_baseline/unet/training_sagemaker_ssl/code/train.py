@@ -109,9 +109,5 @@ def main():
         dst.mkdir(parents=True, exist_ok=True)
         shutil.copy(src, dst)
 
-    shutil.copy(workdir / "results/UNet/weights_semisupervised/plans.pkl",
-                output_dir / "picai_unet_semi_supervised_gc_algorithm/results/UNet/weights_semisupervised/plans.pkl")
-
-
 if __name__ == '__main__':
     main()
