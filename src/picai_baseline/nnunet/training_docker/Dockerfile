@@ -31,9 +31,9 @@ RUN SITE_PKG=`pip3 show nnunet | grep "Location:" | awk '{print $2}'` && \
 
 # Install PI-CAI repositories
 RUN pip3 install \
-    picai_eval>=1.4.4 \
-    picai_prep>=2.1.2 \
-    picai_baseline>=0.8.1 \
+    picai_eval==1.4.4 \
+    picai_prep==2.1.2 \
+    picai_baseline==0.8.2 \
     mlxtend==0.19.0
 
 # copy custom files to nnUNet folder
