@@ -54,11 +54,10 @@ def main(taskname="Task2203_picai_baseline"):
     images_dir = Path(args.imagesdir)
     labels_dir = Path(args.labelsdir)
     output_dir = Path(args.outputdir)
-    splits_path = workdir / f"splits/{taskname}/splits.json"
+    splits_path = workdir / f"nnUNet_raw_data/{taskname}/splits.json"
 
     workdir.mkdir(parents=True, exist_ok=True)
     output_dir.mkdir(parents=True, exist_ok=True)
-    splits_path.parent.mkdir(parents=True, exist_ok=True)
 
     # set environment variables
     os.environ["prepdir"] = str(workdir / "nnUNet_preprocessed")
@@ -75,26 +74,6 @@ def main(taskname="Task2203_picai_baseline"):
 
     print("Images folder:", os.listdir(images_dir))
     print("Labels folder:", os.listdir(labels_dir))
-
-    # resolve cross-validation splits
-    predefined_splits = {
-        "picai_pub": picai_pub_splits,
-        "picai_pubpriv": picai_pubpriv_splits,
-        "picai_pub_nnunet": picai_pub_nnunet_splits,
-        "picai_pubpriv_nnunet": picai_pubpriv_nnunet_splits,
-        "picai_debug": picai_debug_splits,
-    }
-    if args.splits in predefined_splits:
-        nnunet_splits = predefined_splits[args.splits]
-    else:
-        # `splits` should be the path to a json file containing the splits
-        print(f"Loading splits from {args.splits}")
-        with open(args.splits, "r") as f:
-            nnunet_splits = json.load(f)
-
-    # save cross-validation splits to disk
-    with open(splits_path, "w") as fp:
-        json.dump(nnunet_splits, fp)
 
     # Convert MHA Archive to nnU-Net Raw Data Archive
     # Also, we combine the provided human-expert annotations with the AI-derived annotations.

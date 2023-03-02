@@ -25,9 +25,15 @@ from picai_prep.examples.mha2nnunet.picai_archive import \
     generate_mha2nnunet_settings
 from tqdm import tqdm
 
-from picai_baseline.splits.picai import nnunet_splits as picai_splits
+from picai_baseline.splits.picai import nnunet_splits as picai_pub_splits
+from picai_baseline.splits.picai_debug import \
+    nnunet_splits as picai_debug_splits
+from picai_baseline.splits.picai_nnunet import \
+    nnunet_splits as picai_pub_nnunet_splits
 from picai_baseline.splits.picai_pubpriv import \
     nnunet_splits as picai_pubpriv_splits
+from picai_baseline.splits.picai_pubpriv_nnunet import \
+    nnunet_splits as picai_pubpriv_nnunet_splits
 
 """
 Script to prepare PI-CAI data into the nnUNet raw data format
@@ -81,11 +87,21 @@ def prepare_data_semi_supervised(
             raise ValueError("Cannot specify both --matrix_size and --preprocessing_kwargs['matrix_size']")
         preprocessing_kwargs["matrix_size"] = matrix_size
 
-    # select splits
-    splits = {
-        "picai_pub": picai_splits,
+    # resolve cross-validation splits
+    predefined_splits = {
+        "picai_pub": picai_pub_splits,
         "picai_pubpriv": picai_pubpriv_splits,
-    }[splits]
+        "picai_pub_nnunet": picai_pub_nnunet_splits,
+        "picai_pubpriv_nnunet": picai_pubpriv_nnunet_splits,
+        "picai_debug": picai_debug_splits,
+    }
+    if isinstance(splits, str) and splits in predefined_splits:
+        splits = predefined_splits[splits]
+    else:
+        # `splits` should be the path to a json file containing the splits
+        print(f"Loading splits from {splits}")
+        with open(splits, "r") as f:
+            splits = json.load(f)
 
     # parse paths
     workdir = Path(workdir)
