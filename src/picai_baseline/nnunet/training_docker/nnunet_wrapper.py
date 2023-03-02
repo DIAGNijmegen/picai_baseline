@@ -204,6 +204,8 @@ def plan_train(argv):
     parser.add_argument('--dont_plan_3d', action='store_true', help='Disable planning of 3D experiments')
     parser.add_argument('--carbontracker', action='store_true', help='Enables tracking of energy consumption')
     parser.add_argument('--pretrained_weights', type=str, required=False, default=None)
+    parser.add_argument('--disable_validation_inference', required=False, action='store_true', 
+                        help="If set nnU-Net will not run inference on the validation set. This is useful if you are only interested in the test set results and want to save some disk space and time.")
     parser.add_argument('--dont_copy_preprocessed_data', action='store_true', help="Don't copy preprocessed data to datadir")
     args = parser.parse_args(argv)
 
@@ -317,6 +319,8 @@ def plan_train(argv):
             cmd.append('--npz')
         if args.kwargs is not None:
             cmd.extend(args.kwargs.split(" "))
+        if args.disable_validation_inference:
+            cmd.append('--disable_validation_inference')
         print(f'[#] Running {" ".join(cmd)}')
 
         subprocess.check_call(cmd)
