@@ -55,12 +55,13 @@ def main(taskname="Task2203_picai_baseline"):
     labels_dir = Path(args.labelsdir)
     output_dir = Path(args.outputdir)
     splits_path = workdir / f"nnUNet_raw_data/{taskname}/splits.json"
+    nnUNet_prep_dir = output_dir / "nnUNet_preprocessed"
 
     workdir.mkdir(parents=True, exist_ok=True)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # set environment variables
-    os.environ["prepdir"] = str(workdir / "nnUNet_preprocessed")
+    os.environ["prepdir"] = str(nnUNet_prep_dir)
 
     # set nnU-Net's number of preprocessing threads
     os.environ["nnUNet_tf"] = str(args.nnUNet_tf)
@@ -83,7 +84,7 @@ def main(taskname="Task2203_picai_baseline"):
         imagesdir=images_dir,
         labelsdir=labels_dir,
         preprocessing_kwargs='{"physical_size": [81.0, 192.0, 192.0], "crop_only": true}',
-        splits="picai_pubpriv",
+        splits=args.splits,
     )
 
     # Preprocess data with nnU-Net
@@ -96,10 +97,8 @@ def main(taskname="Task2203_picai_baseline"):
     check_call(cmd)
 
     # Export preprocessed dataset
-    print("Exporting preprocessed dataset...")
-    dst = output_dir / f"nnUNet_preprocessed/{taskname}/"
-    dst.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copytree(workdir / f"nnUNet_preprocessed/{taskname}/", dst)
+    # nnU-Net will create a folder with the preprocessed data in the output directory.
+    # Make sure you export any files that you want to save to the output directory!
 
 
 if __name__ == '__main__':
