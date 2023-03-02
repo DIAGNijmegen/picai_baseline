@@ -204,7 +204,7 @@ def plan_train(argv):
     parser.add_argument('--dont_plan_3d', action='store_true', help='Disable planning of 3D experiments')
     parser.add_argument('--carbontracker', action='store_true', help='Enables tracking of energy consumption')
     parser.add_argument('--pretrained_weights', type=str, required=False, default=None)
-    parser.add_argument('--dont_export_preprocessed_data', action='store_true', help="Don't copy preprocessed data to datadir")
+    parser.add_argument('--dont_copy_preprocessed_data', action='store_true', help="Don't copy preprocessed data to datadir")
     args = parser.parse_args(argv)
 
     # aid type hinting
@@ -278,7 +278,7 @@ def plan_train(argv):
                     pickle.dump(splits, fp)
                 shutil_sol.copyfile(args.custom_split, splits_file.with_suffix('.json'))
 
-            if (prepdir / args.task).absolute() != taskdir.absolute() and not args.dont_export_preprocessed_data:
+            if (prepdir / args.task).absolute() != taskdir.absolute() and not args.dont_copy_preprocessed_data:
                 # Copy preprocessed data to storage server
                 print('[#] Copying plans and preprocessed data from compute node to storage server')
                 taskdir.parent.mkdir(parents=True, exist_ok=True)
