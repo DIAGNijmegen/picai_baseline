@@ -27,8 +27,6 @@ def main(taskname="Task2203_picai_baseline"):
 
     # input data and model directories
     parser.add_argument('--workdir', type=str, default="/workdir")
-    parser.add_argument('--imagesdir', type=str, default=os.environ.get('SM_CHANNEL_IMAGES', "/input/images"))
-    parser.add_argument('--labelsdir', type=str, default=os.environ.get('SM_CHANNEL_LABELS', "/input/picai_labels"))
     parser.add_argument('--preprocesseddir', type=str, default=os.environ.get('SM_CHANNEL_PREPROCESSED', "/input/preprocessed"))
     parser.add_argument('--outputdir', type=str, default=os.environ.get('SM_MODEL_DIR', "/output"))
     parser.add_argument('--checkpointsdir', type=str, default="/checkpoints")
@@ -40,8 +38,6 @@ def main(taskname="Task2203_picai_baseline"):
 
     # paths
     workdir = Path(args.workdir)
-    images_dir = Path(args.imagesdir)
-    labels_dir = Path(args.labelsdir)
     output_dir = Path(args.outputdir)
     checkpoints_dir = Path(args.checkpointsdir)
     preprocessed_dir = Path(args.preprocesseddir)
@@ -56,12 +52,8 @@ def main(taskname="Task2203_picai_baseline"):
 
     # descibe input data
     print(f"workdir: {workdir}")
-    print(f"images_dir: {images_dir}")
-    print(f"labels_dir: {labels_dir}")
+    print(f"checkpoints_dir: {checkpoints_dir}")
     print(f"output_dir: {output_dir}")
-
-    print("Images folder:", os.listdir(images_dir))
-    print("Labels folder:", os.listdir(labels_dir))
 
     # Train models
     for fold in args.folds:
