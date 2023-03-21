@@ -1,4 +1,4 @@
-FROM joeranbosma/picai_nnunet:latest
+FROM joeranbosma/picai_nnunet:1.7.0-customized-v1.14
 
 COPY --chown=user train.py /opt/algorithm/train.py
 RUN chmod +x /opt/algorithm/train.py && \
