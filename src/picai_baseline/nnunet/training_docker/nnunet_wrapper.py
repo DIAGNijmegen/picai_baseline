@@ -329,7 +329,7 @@ def plan_train(argv):
 
         # Copy split file since that is for sure available now (nnUNet_train has created
         # it if the file did not exist already - unless training with "all", so still check)
-        if splits_file.exists() and splits_file.parent.absolute() != taskdir.absolute():
+        if splits_file.exists() and splits_file.parent.absolute() != taskdir.absolute() and taskdir.is_dir():
             atomic_file_copy(splits_file, taskdir)
 
 
