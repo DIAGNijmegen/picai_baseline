@@ -38,7 +38,7 @@ We define setup steps that are shared between the different baseline algorithms.
 We define three main folders that must be prepared apriori:
 - `/input/` contains one of the [PI-CAI datasets](https://pi-cai.grand-challenge.org/DATA/). This can be the Public Training and Development Dataset, the Private Training Dataset, the Hidden Validation and Tuning Cohort, or the Hidden Testing Cohort.
   - `/input/images/` contains the imaging files. For the Public Training and Development Dataset, these can be retrieved [here](https://zenodo.org/record/6624726).
-  - `/input/labels/` contains the annotations. For the Public Training and Development Dataset, these can be retrieved [here](https://github.com/DIAGNijmegen/picai_labels).
+  - `/input/picai_labels/` contains the annotations. For the Public Training and Development Dataset, these can be retrieved [here](https://github.com/DIAGNijmegen/picai_labels).
 - `/workdir/` stores intermediate results, such as preprocessed images and annotations.
   - `/workdir/results/[model name]/` stores model checkpoints/weights during training (enables the ability to pause/resume training).    
 - `/output/` stores training output, such as trained model weights and preprocessing plan.
@@ -78,7 +78,7 @@ Please follow the [instructions here](nnunet_baseline.md#nnu-net---docker-setup)
 Also, collect the training annotations via the following command:
 
 ```bash
-git clone https://github.com/DIAGNijmegen/picai_labels /input/labels/
+git clone https://github.com/DIAGNijmegen/picai_labels /input/
 ```
 
 
