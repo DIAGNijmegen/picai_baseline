@@ -75,10 +75,23 @@ docker run --cpus=2 --memory=8gb --rm -v /path/to/input:/input joeranbosma/picai
 
 Please follow the [instructions here](nnunet_baseline.md#nnu-net---docker-setup) to set up the Docker container.
 
-Also, collect the training annotations via the following command:
+Also, collect the training annotations. This can be done via the following command:
 
 ```bash
-git clone https://github.com/DIAGNijmegen/picai_labels /input/
+cd /input
+git clone https://github.com/DIAGNijmegen/picai_labels
+```
+
+After cloning the repository with annotations, you should have a folder structure like this:
+
+```bash
+/input/picai_labels
+├── anatomical_delineations
+│   ├── ...
+├── clinical_information
+│   └── marksheet.csv
+└── csPCa_lesion_delineations
+    ├── ...
 ```
 
 
