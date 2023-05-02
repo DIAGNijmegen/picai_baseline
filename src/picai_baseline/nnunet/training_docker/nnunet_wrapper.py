@@ -263,8 +263,6 @@ def plan_train(argv):
                 cmd.extend(['--planner2d', 'None'])  # disable 2D planning to speed up the preprocessing phase
             if args.dont_plan_3d and '3d' not in args.network:
                 cmd.extend(['--planner3d', 'None'])
-            if args.pretrained_weights is not None:
-                cmd.extend(['-pretrained_weights', args.pretrained_weights])
             subprocess.check_call(cmd)
 
             # Use a custom data split?
@@ -310,6 +308,9 @@ def plan_train(argv):
         elif path_exists(outdir) and any(outdir.glob("*.model")):
             print('[#] Resuming network training')
             cmd.append('-c')
+        elif args.pretrained_weights is not None:
+            print("Load pre-trained_model")
+            cmd.extend(['-pretrained_weights', args.pretrained_weights])
         else:
             print('[#] Starting network training')
 

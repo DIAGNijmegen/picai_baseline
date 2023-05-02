@@ -75,7 +75,7 @@ def main(taskname="Task2203_picai_baseline"):
     for fold in args.folds:
         src = results_dir / f"fold_{fold}/model_best.model"
         dst = export_dir / f"fold_{fold}/model_best.model"
-        dst.mkdir(parents=True, exist_ok=True)
+        dst.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy(src, dst)
 
         src = results_dir / f"fold_{fold}/model_best.model.pkl"
