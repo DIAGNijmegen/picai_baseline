@@ -19,10 +19,11 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import torch
-from picai_baseline.unet.training_setup.poly_lr import poly_lr
 from picai_eval import evaluate
 from report_guided_annotation import extract_lesion_candidates
 from scipy.ndimage import gaussian_filter
+
+from picai_baseline.unet.training_setup.poly_lr import poly_lr
 
 
 def resume_or_restart_training(model, optimizer, device, args, fold_id):
@@ -210,7 +211,7 @@ def validate_model(model, optimizer, valid_gen, args, tracking_metrics, device, 
     os.makedirs(args.weights_dir, exist_ok=True)
 
     metrics_file = Path(args.weights_dir) / f"{args.model_type}_F{f}_metrics.xlsx"
-    metricsData.to_excel(metrics_file, encoding='utf-8', index=False)
+    metricsData.to_excel(metrics_file, index=False)
 
     writer.add_scalar("valid_auroc",   valid_metrics.auroc, epoch+1)
     writer.add_scalar("valid_ap",      valid_metrics.AP,    epoch+1)
