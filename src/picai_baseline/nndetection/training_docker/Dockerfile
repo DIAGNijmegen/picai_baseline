@@ -38,12 +38,15 @@ RUN mkdir -p ${det_data}
 
 # Install mibaumgartner code
 COPY ./requirements.txt .
+ENV SKLEARN_ALLOW_DEPRECATED_SKLEARN_PACKAGE_INSTALL=True
 RUN pip3 install -r requirements.txt  \
   && pip3 install hydra-core --upgrade --pre \
   && pip3 install git+https://github.com/mibaumgartner/pytorch_model_summary.git
 
 # Install nnDetection
 RUN git clone https://github.com/MIC-DKFZ/nnDetection /opt/code/nnDetection
+RUN cd /opt/code/nnDetection \
+    && git checkout 1044ace5340b2a07bf9f9d5f92681f712cc0d2b4
 COPY ./consolidate.py /opt/code/nnDetection/scripts/consolidate.py
 COPY ./predict.py /opt/code/nnDetection/scripts/predict.py
 COPY ./utils.py /opt/code/nnDetection/scripts/utils.py
@@ -63,6 +66,16 @@ RUN SITE_PKG=`pip3 show nnunet | grep "Location:" | awk '{print $2}'` && \
         -exec sed -i.bak \
             -e "s|import shutil|import shutil, shutil_sol|g" \
             -e "s|shutil.copy(|shutil_sol.copyfile(|g" \
+            -e "s|shutil.copytree(|shutil_sol.copytree(|g" {} +
+COPY shutil_sol.py /tmp/shutil_sol.py
+RUN SITE_PKG=`pip3 show nndet | grep "Location:" | awk '{print $2}'` && \
+    mkdir -p "$SITE_PKG/shutil_sol" && \
+    mv /tmp/shutil_sol.py "$SITE_PKG/shutil_sol/__init__.py" && \
+    find "$SITE_PKG/nndet" -type f -name "*.py" \
+        -exec sed -i.bak \
+            -e "s|import shutil|import shutil, shutil_sol|g" \
+            -e "s|shutil.copy(|shutil_sol.copyfile(|g" \
+            -e "s|shutil.copy2(|shutil_sol.copyfile(|g" \
             -e "s|shutil.copytree(|shutil_sol.copytree(|g" {} +
 
 # Copy utility scripts
