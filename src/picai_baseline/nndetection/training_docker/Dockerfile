@@ -76,6 +76,12 @@ RUN SITE_PKG=`pip3 show nndet | grep "Location:" | awk '{print $2}'` && \
             -e "s|import shutil|import shutil, shutil_sol|g" \
             -e "s|shutil.copy(|shutil_sol.copyfile(|g" \
             -e "s|shutil.copy2(|shutil_sol.copyfile(|g" \
+            -e "s|shutil.copytree(|shutil_sol.copytree(|g" {} + && \
+    find "$SITE_PKG/scripts" -type f -name "*.py" \
+        -exec sed -i.bak \
+            -e "s|import shutil|import shutil, shutil_sol|g" \
+            -e "s|shutil.copy(|shutil_sol.copyfile(|g" \
+            -e "s|shutil.copy2(|shutil_sol.copyfile(|g" \
             -e "s|shutil.copytree(|shutil_sol.copytree(|g" {} +
 
 # Copy utility scripts
