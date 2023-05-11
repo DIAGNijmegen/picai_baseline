@@ -158,7 +158,7 @@ def validate_model(model, optimizer, valid_gen, args, tracking_metrics, device, 
             valid_labels = valid_data['seg']
         except Exception:
             valid_images = torch.from_numpy(valid_data['data']).to(device)
-            valid_labels = torch.from_numpy(valid_data['seg'])
+            valid_labels = valid_data['seg'].squeeze()
 
         # test-time augmentation
         valid_images = [valid_images, torch.flip(valid_images, [4]).to(device)]
@@ -167,7 +167,7 @@ def validate_model(model, optimizer, valid_gen, args, tracking_metrics, device, 
         # gaussian blur to counteract checkerboard artifacts in
         # predictions from the use of transposed conv. in the U-Net
         preds = [
-            torch.softmax(model(x))[:, 1].detach().cpu().numpy()
+            torch.sigmoid(model(x))[:, 1, ...].detach().cpu().numpy()
             for x in valid_images
         ]
 
@@ -176,19 +176,12 @@ def validate_model(model, optimizer, valid_gen, args, tracking_metrics, device, 
 
         # gaussian blur to counteract checkerboard artifacts in
         # predictions from the use of transposed conv. in the U-Net
-        preds = [
-            np.mean([
-                gaussian_filter(x, sigma=1.5)
-            ], axis=0)
-            for x in preds
-        ]
-        valid_labels += [valid_labels.numpy()[:, 0, ...]]
-
+        preds = np.mean([
+            gaussian_filter(x, sigma=1.5) for x in preds
+        ], axis=0).squeeze()
+    
         # extract lesion candidates
-        preds = [
-            extract_lesion_candidates(x)[0]
-            for x in preds
-        ]
+        preds = extract_lesion_candidates(preds)[0]
 
         # evaluate batch
         y_list = evaluate_case(
