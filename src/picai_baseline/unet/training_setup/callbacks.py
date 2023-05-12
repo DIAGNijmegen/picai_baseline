@@ -193,6 +193,7 @@ def validate_model(model, optimizer, valid_gen, args, tracking_metrics, device, 
         lesion_results += y_list
 
     # track validation metrics
+    lesion_results = {idx: result for idx, result in enumerate(lesion_results)}
     valid_metrics = Metrics(lesion_results)
 
     num_pos = sum([y == 1 for y in valid_metrics.case_target.values()])
