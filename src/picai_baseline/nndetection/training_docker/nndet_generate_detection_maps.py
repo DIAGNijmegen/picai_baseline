@@ -79,12 +79,12 @@ def boxes2det(in_dir_pred, out_dir_det, target_label=None, threshold=0.0, min_nu
                 slice(int(pbox[1]) + 1, int(pbox[3])),
             ]
             neighbourhood_slicing = [
-                slice(int(pbox[0]), int(pbox[2]) + 1),
-                slice(int(pbox[1]), int(pbox[3]) + 1),
+                slice(max(0, int(pbox[0]) - 1), int(pbox[2]) + 2),
+                slice(max(0, int(pbox[1]) - 1), int(pbox[3]) + 2),
             ]
             if instance_mask.ndim == 3:
                 mask_slicing.append(slice(int(pbox[4]) + 1, int(pbox[5])))
-                neighbourhood_slicing.append(slice(int(pbox[4]), int(pbox[5]) + 1))
+                neighbourhood_slicing.append(slice(max(0, int(pbox[4]) - 1), int(pbox[5]) + 2))
 
             mask_slicing = tuple(mask_slicing)
             neighbourhood_slicing = tuple(neighbourhood_slicing)
