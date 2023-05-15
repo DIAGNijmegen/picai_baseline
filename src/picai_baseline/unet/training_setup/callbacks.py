@@ -19,7 +19,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import torch
-from picai_eval import evaluate
+from picai_eval import Metrics
+from picai_eval.eval import evaluate_case
 from report_guided_annotation import extract_lesion_candidates
 from scipy.ndimage import gaussian_filter
 
@@ -115,7 +116,7 @@ def optimize_model(model, optimizer, loss_func, train_gen, args, tracking_metric
             inputs = torch.from_numpy(batch_data['data']).to(device)
             labels = torch.from_numpy(batch_data['seg']).to(device)
         outputs = model(inputs)
-        loss = loss_func(outputs, labels[:, 0, ...].long())
+        loss = loss_func(outputs, labels)
         train_loss += loss.item()
 
         # backpropagate + optimize
@@ -124,7 +125,7 @@ def optimize_model(model, optimizer, loss_func, train_gen, args, tracking_metric
         optimizer.step()
 
         # define each training epoch == 100 steps (note: nnU-Net uses 250 steps)
-        if step >= 100: 
+        if step >= 100:
             break
 
     # update learning rate
@@ -146,10 +147,10 @@ def optimize_model(model, optimizer, loss_func, train_gen, args, tracking_metric
 def validate_model(model, optimizer, valid_gen, args, tracking_metrics, device, writer):
     """Validate model per N epoch + export model weights"""
 
-    all_valid_preds, all_valid_labels = [], []
     epoch, f = tracking_metrics['epoch'], tracking_metrics['fold_id']
 
     # for each validation sample
+    lesion_results = []
     for valid_data in valid_gen:
 
         try:
@@ -157,7 +158,7 @@ def validate_model(model, optimizer, valid_gen, args, tracking_metrics, device, 
             valid_labels = valid_data['seg']
         except Exception:
             valid_images = torch.from_numpy(valid_data['data']).to(device)
-            valid_labels = torch.from_numpy(valid_data['seg'])
+            valid_labels = valid_data['seg']
 
         # test-time augmentation
         valid_images = [valid_images, torch.flip(valid_images, [4]).to(device)]
@@ -175,23 +176,33 @@ def validate_model(model, optimizer, valid_gen, args, tracking_metrics, device, 
 
         # gaussian blur to counteract checkerboard artifacts in
         # predictions from the use of transposed conv. in the U-Net
-        all_valid_preds += [
-            np.mean([
-                gaussian_filter(x, sigma=1.5)
-                for x in preds
-            ], axis=0)
+        preds = np.mean([
+            gaussian_filter(x, sigma=1.5)
+            for x in preds
+        ], axis=0)
+    
+        # extract lesion candidates
+        preds = [
+            extract_lesion_candidates(x)[0] 
+            for x in preds
         ]
-        all_valid_labels += [valid_labels.numpy()[:, 0, ...]]
+
+        # evaluate detection maps of batch
+        for y_det, y_true in zip(preds, valid_labels):
+            y_list, *_ = evaluate_case(
+                y_det=y_det,
+                y_true=y_true.squeeze(),
+            )
+
+            # aggregate all validation evaluations
+            lesion_results.append(y_list)
 
     # track validation metrics
-    valid_metrics = evaluate(y_det=iter(np.concatenate([x for x in np.array(all_valid_preds)], axis=0)),
-                             y_true=iter(np.concatenate([x for x in np.array(all_valid_labels)], axis=0)),
-                             y_det_postprocess_func=lambda pred: extract_lesion_candidates(pred)[0])
+    lesion_results = {idx: result for idx, result in enumerate(lesion_results)}
+    valid_metrics = Metrics(lesion_results)
 
-    num_pos = int(np.sum([np.max(y) for y in np.concatenate(
-        [x for x in np.array(all_valid_labels)], axis=0)]))
-    num_neg = int(len(np.concatenate([x for x in
-                                      np.array(all_valid_labels)], axis=0)) - num_pos)
+    num_pos = sum([y == 1 for y in valid_metrics.case_target.values()])
+    num_neg = sum([y == 0 for y in valid_metrics.case_target.values()])
 
     tracking_metrics['all_epochs'].append(epoch+1)
     tracking_metrics['all_train_loss'].append(tracking_metrics['train_loss'])

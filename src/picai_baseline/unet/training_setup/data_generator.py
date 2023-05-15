@@ -21,6 +21,7 @@ import numpy as np
 import torch
 from batchgenerators.dataloading.data_loader import DataLoader
 from monai.transforms import Compose, EnsureType
+
 from picai_baseline.unet.training_setup.image_reader import SimpleITKDataset
 
 
@@ -121,6 +122,6 @@ def prepare_datagens(args, fold_id):
     train_ldr = DataLoaderFromDataset(train_ds, 
         batch_size=args.batch_size, num_threads=args.num_threads, infinite=True, shuffle=True)
     valid_ldr = DataLoaderFromDataset(valid_ds, 
-        batch_size=args.batch_size, num_threads=1, infinite=False, shuffle=False)
+        batch_size=args.batch_size, num_threads=args.num_threads, infinite=False, shuffle=False)
 
     return train_ldr, valid_ldr, class_weights.astype(np.float32)
