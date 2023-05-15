@@ -193,8 +193,8 @@ def validate_model(model, optimizer, valid_gen, args, tracking_metrics, device, 
                 y_true=y_true.squeeze(),
             )
 
-        # aggregate all validation evaluations
-        lesion_results.append(y_list)
+            # aggregate all validation evaluations
+            lesion_results.append(y_list)
 
     # track validation metrics
     lesion_results = {idx: result for idx, result in enumerate(lesion_results)}
