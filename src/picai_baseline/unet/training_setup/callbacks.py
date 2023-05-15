@@ -158,7 +158,7 @@ def validate_model(model, optimizer, valid_gen, args, tracking_metrics, device, 
             valid_labels = valid_data['seg']
         except Exception:
             valid_images = torch.from_numpy(valid_data['data']).to(device)
-            valid_labels = valid_data['seg'].squeeze()
+            valid_labels = valid_data['seg']
 
         # test-time augmentation
         valid_images = [valid_images, torch.flip(valid_images, [4]).to(device)]
@@ -178,19 +178,23 @@ def validate_model(model, optimizer, valid_gen, args, tracking_metrics, device, 
         # predictions from the use of transposed conv. in the U-Net
         preds = np.mean([
             gaussian_filter(x, sigma=1.5) for x in preds
-        ], axis=0).squeeze()
+        ], axis=0)
     
         # extract lesion candidates
-        preds = extract_lesion_candidates(preds)[0]
+        preds = [
+            extract_lesion_candidates(preds[x,...])[0] 
+            for x in range(preds.shape[0])
+        ]
 
         # evaluate batch
-        y_list = evaluate_case(
-            y_det=preds,
-            y_true=valid_labels,
-        )
+        for y_det, y_true in zip(preds, valid_labels):
+            y_list, *_ = evaluate_case(
+                y_det=y_det,
+                y_true=y_true.squeeze(),
+            )
 
         # aggregate all validation evaluations
-        lesion_results += y_list
+        lesion_results.append(y_list)
 
     # track validation metrics
     lesion_results = {idx: result for idx, result in enumerate(lesion_results)}
