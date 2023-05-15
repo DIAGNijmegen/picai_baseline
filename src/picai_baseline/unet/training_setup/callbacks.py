@@ -177,16 +177,17 @@ def validate_model(model, optimizer, valid_gen, args, tracking_metrics, device, 
         # gaussian blur to counteract checkerboard artifacts in
         # predictions from the use of transposed conv. in the U-Net
         preds = np.mean([
-            gaussian_filter(x, sigma=1.5) for x in preds
+            gaussian_filter(x, sigma=1.5)
+            for x in preds
         ], axis=0)
     
         # extract lesion candidates
         preds = [
-            extract_lesion_candidates(preds[x,...])[0] 
-            for x in range(preds.shape[0])
+            extract_lesion_candidates(x)[0] 
+            for x in preds
         ]
 
-        # evaluate batch
+        # evaluate detection maps of batch
         for y_det, y_true in zip(preds, valid_labels):
             y_list, *_ = evaluate_case(
                 y_det=y_det,
