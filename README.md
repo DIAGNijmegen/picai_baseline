@@ -1,6 +1,6 @@
 # Baseline AI Models for Prostate Cancer Detection in MRI
 
-This repository contains utilities to set up and train deep learning-based detection models for clinically significant prostate cancer (csPCa) in MRI. In turn, these models serve as the official baseline AI solutions for the [PI-CAI challenge](https://pi-cai.grand-challenge.org/). As of now, the following three models will be provided and supported:
+This repository contains utilities to set up and train deep learning-based detection models for clinically significant prostate cancer (csPCa) in MRI. In turn, these models serve as the official baseline AI solutions for the [PI-CAI challenge](https://pi-cai.grand-challenge.org/). As of now, the following three models are provided and supported:
 
 - [U-Net](unet_baseline.md)
 - [nnU-Net](nnunet_baseline.md)
@@ -27,16 +27,16 @@ cd picai_baseline
 pip install -e .
 ```
 
-This ensures the scripts are present locally, which enables you to run the provided Python scripts. Additionally, this allows you to modify the baseline solutions, due to the `-e` option. Furthermore, this ensures the latest version is installed.
+Installing from source ensures the scripts are present locally, which enables you to run the provided Python scripts. Additionally, this allows you to modify the baseline solutions, due to the `-e` option.
 
 
 ## General Setup
-We define setup steps that are shared between the different baseline algorithms. To follow the baseline algorithm tutorials, this setup must be completed first.
+We define setup steps that are shared between the different baseline algorithms. To follow the model-specific baseline algorithm tutorials, these steps must be completed first.
 
 
 ### Folder Structure
-We define three main folders that must be prepared apriori:
-- `/input/` contains one of the [PI-CAI datasets](https://pi-cai.grand-challenge.org/DATA/). This can be the Public Training and Development Dataset, the Private Training Dataset, the Hidden Validation and Tuning Cohort, or the Hidden Testing Cohort.
+We define three main folders that must be prepared:
+- `/input/` contains the [PI-CAI dataset](https://pi-cai.grand-challenge.org/DATA/). In this tutorial we assume this is the PI-CAI Public Training and Development Dataset.
   - `/input/images/` contains the imaging files. For the Public Training and Development Dataset, these can be retrieved [here](https://zenodo.org/record/6624726).
   - `/input/picai_labels/` contains the annotations. For the Public Training and Development Dataset, these can be retrieved [here](https://github.com/DIAGNijmegen/picai_labels).
 - `/workdir/` stores intermediate results, such as preprocessed images and annotations.
@@ -122,15 +122,16 @@ python -m picai_baseline.splits.picai_nnunet --output "/workdir/splits/picai_nnu
 
 
 ### Data Preprocessing
-We follow the [`nnU-Net Raw Data Archive`][nnunet_raw_data_format] format to prepare our dataset for usage. For this, you can use the [`picai_prep`][picai_prep] module. Note, the [`picai_prep`][picai_prep] module should be automatically installed when installing the `picai_baseline` module, and is installed within the [`picai_nnunet`][picai_nnunet_docker] and [`picai_nndetection`][picai_nndetection_docker] Docker containers as well. 
+We follow the [`nnU-Net Raw Data Archive`][nnunet_raw_data_format] format to prepare our dataset for usage. For this, you can use the [`picai_prep`][picai_prep] module. The [`picai_prep`][picai_prep] module allows to resample all cases to the same resolution (you can resample each case indivudually to the same resolution between the different sequences, or choose to resample the full dataset to the same resolution). For details on the available options to convert the dataset in `/input/` into the [`nnU-Net Raw Data Archive`][nnunet_raw_data_format] format, and store it in `/workdir/nnUNet_raw_data`, please see the instructions [provided here][picai_prep_mha2nnunet]. Below we give the conversion as performed for the [baseline semi-supervised nnU-Net](https://grand-challenge.org/algorithms/pi-cai-pubpriv-nnu-net-semi-supervised/). For the U-Net baseline, please see the [U-Net tutorial](src/picai_baseline/unet_baseline.md#u-net---data-preparation) for extra instructions.
 
-To convert the dataset in `/input/` into the [`nnU-Net Raw Data Archive`][nnunet_raw_data_format] format, and store it in `/workdir/nnUNet_raw_data`, please follow the instructions [provided here][picai_prep_mha2nnunet], or set your target paths in [`prepare_data.py`](src/picai_baseline/prepare_data.py) and execute it:
+Note, the [`picai_prep`][picai_prep] module should be automatically installed when installing the `picai_baseline` module, and is installed within the [`picai_nnunet`][picai_nnunet_docker] and [`picai_nndetection`][picai_nndetection_docker] Docker containers as well. 
 
 ```bash
-python src/picai_baseline/prepare_data.py
+python src/picai_baseline/prepare_data_semi_supervised.py
 ```
 
-To adapt/modify the preprocessing pipeline or its default specifications, please make changes to the [`prepare_data.py`](src/picai_baseline/prepare_data.py) script accordingly.
+For the baseline semi-supervised U-Net algorithm, specify the dataset-wise resolution: `--spacing 3.0 0.5 0.5`.
+To adapt/modify the preprocessing pipeline or its default specifications, either check out the various command like options (use flag `-h` to show these) or make changes to the [`prepare_data_semi_supervised.py`](src/picai_baseline/prepare_data_semi_supervised.py) script.
 
 Alternatively, you can use Docker to run the Python script:
 
@@ -139,8 +140,10 @@ docker run --cpus=2 --memory=16gb --rm \
     -v /path/to/input/:/input/ \
     -v /path/to/workdir/:/workdir/ \
     -v /path/to/picai_baseline:/scripts/picai_baseline/ \
-    joeranbosma/picai_nnunet:latest python3 /scripts/picai_baseline/src/picai_baseline/prepare_data.py
+    joeranbosma/picai_nnunet:latest python3 /scripts/picai_baseline/src/picai_baseline/prepare_data_semi_supervised.py
 ```
+
+If you don't want to include the AI-generated annotations, you can also use the supervised data preparation script: [`prepare_data.py`](src/picai_baseline/prepare_data.py).
 
 
 ## Baseline Algorithms
@@ -184,13 +187,25 @@ If you are using this codebase or some part of it, please cite the following art
 
 ● [A. Saha, J. J. Twilt, J. S. Bosma, B. van Ginneken, D. Yakar, M. Elschot, J. Veltman, J. J. Fütterer, M. de Rooij, H. Huisman, "Artificial Intelligence and Radiologists at Prostate Cancer Detection in MRI: The PI-CAI Challenge (Study Protocol)", DOI: 10.5281/zenodo.6667655](https://zenodo.org/record/6667655)
 
+If you are using the AI-generated annotations (i.e., semi-supervised learning), please cite the following article:
+● [J. S. Bosma, A. Saha, M. Hosseinzadeh, I. Slootweg, M. de Rooij, and H. Huisman, "Semisupervised Learning with Report-guided Pseudo Labels for Deep Learning–based Prostate Cancer Detection Using Biparametric MRI", Radiology: Artificial Intelligence, 230031, 2023. doi:10.1148/ryai.230031](https://doi.org/10.1148/ryai.230031)
+
 **BibTeX:**
 ```
-@ARTICLE{PICAI_BIAS,
-    author = {Anindo Saha, Jasper J. Twilt, Joeran S. Bosma, Bram van Ginneken, Derya Yakar, Mattijs Elschot, Jeroen Veltman, Jurgen Fütterer, Maarten de Rooij, Henkjan Huisman},
-    title  = {{Artificial Intelligence and Radiologists at Prostate Cancer Detection in MRI: The PI-CAI Challenge (Study Protocol)}}, 
-    year   = {2022},
-    doi    = {10.5281/zenodo.6667655}
+@article{PICAI_BIAS,
+    author={Anindo Saha, Jasper J. Twilt, Joeran S. Bosma, Bram van Ginneken, Derya Yakar, Mattijs Elschot, Jeroen Veltman, Jurgen Fütterer, Maarten de Rooij, Henkjan Huisman},
+    title={{Artificial Intelligence and Radiologists at Prostate Cancer Detection in MRI: The PI-CAI Challenge (Study Protocol)}},
+    year={2022},
+    doi={10.5281/zenodo.6667655}
+}
+@article{Bosma23,
+    author={Joeran S. Bosma, Anindo Saha, Matin Hosseinzadeh, Ivan Slootweg, Maarten de Rooij, and Henkjan Huisman},
+    title={Semisupervised Learning with Report-guided Pseudo Labels for Deep Learning–based Prostate Cancer Detection Using Biparametric MRI},
+    journal={Radiology: Artificial Intelligence},
+    pages={e230031},
+    year={2023},
+    doi={10.1148/ryai.230031},
+    publisher={Radiological Society of North America}
 }
 ```
 
