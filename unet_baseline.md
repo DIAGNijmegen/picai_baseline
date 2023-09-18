@@ -7,33 +7,25 @@ We include a lightweight, baseline [U-Net](https://link.springer.com/chapter/10.
 
 
 ### U-Net - Data Preparation
-We use the [same cross-validation splits](README.md#cross-validation-splits) for this U-Net, as the [nnU-Net](nnunet_baseline.md). We use the same data preparation/preprocessing pipeline for this U-Net, as the [nnU-Net](nnunet_baseline.md), with two exceptions. We specify the following in [Line 84-85 of prepare_data.py](src/picai_baseline/prepare_data.py#L84-L85):
+We use the [same cross-validation splits](README.md#cross-validation-splits) for this U-Net, as the [nnU-Net](nnunet_baseline.md). We use the same data preparation/preprocessing pipeline for this U-Net, as the [nnU-Net](nnunet_baseline.md), with two exceptions:
 
-```python
-mha2nnunet_settings["preprocessing"]["spacing"] = [3.0, 0.5, 0.5]
-mha2nnunet_settings["preprocessing"]["matrix_size"] = [20, 256, 256]
-```
-
-Instead of nnUNet's:
-
-```python
-mha2nnunet_settings["preprocessing"]["physical_size"] = [81.0, 192.0, 192.0]
-mha2nnunet_settings["preprocessing"]["crop_only"] = True
-```
-
-By doing so, besides formatting and converting the dataset into the [`nnU-Net Raw Data Archive`][nnunet_raw_data_format] structure, [prepare_data.py](src/picai_baseline/prepare_data.py) also preprocesses each scan and annotation in the dataset, as follows:
-
-- **Resampling Spatial Resolution**: The [PI-CAI: Public Training and Development Dataset](https://pi-cai.grand-challenge.org/DATA/) contains MRI scans acquired using seven different scanners, from two vendors, at three centers. Thus, the spatial resolution of its images vary across different patient exams. For instance, in the case of the axial T2W scans, the most common voxel spacing (in mm/voxel) observed is 3.0×0.5×0.5 (43%), followed by 3.6×0.3×0.3 (25%), 3.0×0.342×0.342 (15%) and others (17%). As a naive approach, we simply resample all scans to 3.0×0.5×0.5 mm/voxel.
+- **Resampling Spatial Resolution**: The [PI-CAI: Public Training and Development Dataset](https://pi-cai.grand-challenge.org/DATA/) contains MRI scans acquired using seven different scanners, from two vendors, at three centers. Thus, the spatial resolution of its images vary across different patient exams. For the axial T2W scans, the most common voxel spacing (in mm/voxel) observed is 3.0×0.5×0.5 (43%), followed by 3.6×0.3×0.3 (25%), 3.0×0.342×0.342 (15%) and others (17%). As a naive approach, we simply resample all scans to 3.0×0.5×0.5 mm/voxel.
 
 - **Cropping to Region-of-Interest**: We naively assume that the prostate gland is typically located within the centre of every prostate MRI scan. Hence, we take a centre crop of each scan, measuring 20×256×256 voxels in dimensions. Note, this assumption does not hold true for the entirety of the [PI-CAI: Public Training and Development Dataset](https://pi-cai.grand-challenge.org/DATA/), where the prostate gland is off-center in several cases.
 
-After following all the steps listed under sections ['Folder Structure'](README.md#folder-structure) and ['Data Preparation'](README.md#data-preparation), set your target paths in [`plan_overview.py`](src/picai_baseline/unet/plan_overview.py) and execute it:
+For the data preparation, this means we prepare the data for the [baseline semi-supervised U-Net algorithm](https://grand-challenge.org/algorithms/pi-cai-baseline-u-net-semi-supervised-trained-on-p/) as follows:
 
 ```bash
-python src/picai_baseline/unet/plan_overview.py
+python prepare_data_semi_supervised.py --spacing 3.0 0.5 0.5 --matrix_size 20 256 256
 ```
 
-This command creates `.json`-based lists of every scan and its corresponding details (e.g. patient ID, study ID, paths to its imaging and annotation files) used in each split (training or validation split) per fold during 5-fold cross-validation, and stores them in `/workdir/results/UNet/overviews/`. These lists are subsequently used by the U-Net's data loaders during training. For example, lists used to complete the first fold of cross-validation would be: `PI-CAI_train-fold-0.json` and `PI-CAI_val-fold-0.json`.
+After following all the steps listed under sections ['Folder Structure'](README.md#folder-structure) and ['Data Preparation'](README.md#data-preparation), generate overviews of the dataset using the provided [`plan_overview.py`](src/picai_baseline/unet/plan_overview.py) script. Set the paths to the corresponding folders on your system:
+
+```bash
+python src/picai_baseline/unet/plan_overview.py --task=Task2203_picai_baseline --workdir=/workdir --preprocessed_data_path=/workdir/nnUNet_raw_data/{task} --overviews_path=/workdir/results/UNet/overviews/{task} --splits=picai_pub
+```
+
+This command creates `.json`-based lists of every scan and its corresponding details (e.g. patient ID, study ID, paths to its imaging and annotation files) used in each split (training or validation split) per fold during 5-fold cross-validation, and stores them in `/workdir/results/UNet/overviews/Task2203_picai_baseline`. These lists are subsequently used by the U-Net's data loaders during training. For example, lists used to complete the first fold of cross-validation would be: `PI-CAI_train-fold-0.json` and `PI-CAI_val-fold-0.json`. To generate overviews for the supervised subset only, use `--task=Task2201_picai_baseline` and `--splits=picai_pub_nnunet`.
 
 
 ### U-Net - Training and Cross-Validation
@@ -42,7 +34,7 @@ The overall framework for training this U-Net has been set up using various modu
 ```bash
 python -u src/picai_baseline/unet/train.py \
   --weights_dir='/workdir/results/UNet/weights/' \
-  --overviews_dir='/workdir/results/UNet/overviews/' \
+  --overviews_dir='/workdir/results/UNet/overviews/Task2203_picai_baseline' \
   --folds 0 1 2 3 4 --max_threads 6 --enable_da 1 --num_epochs 250 \
   --validate_n_epochs 1 --validate_min_epoch 0
 ```
@@ -104,4 +96,4 @@ def process_model_weights(input_ckpt_path, output_ckpt_path):
 
 If you're using an ensemble, this function should be applied to each checkpoint file per member model (e.g. an ensemble can consist of the five models derived from all five folds of training/cross-validation). 
 
-Next, we highly recommend completing the [full tutorial on how to create algorithms on grand-challenge.org](https://grand-challenge.org/documentation/create-your-own-algorithm/). In accordance with the same, we've built an [**example algorithm for you to use/adapt here**](https://github.com/DIAGNijmegen/picai_unet_gc_algorithm). Head over to the ["AI: Algorithm Submissions" page](https://pi-cai.grand-challenge.org/ai-algorithm-submissions/) on the challenge website for more details, and the final steps needed to make a submission to the PI-CAI challenge.
+Next, we highly recommend completing the [full tutorial on how to create algorithms on grand-challenge.org](https://grand-challenge.org/documentation/create-your-own-algorithm/). In accordance with the same, we've built an [**example algorithm for you to use/adapt here**](https://github.com/DIAGNijmegen/picai_unet_semi_supervised_gc_algorithm). Head over to the ["AI: Algorithm Submissions" page](https://pi-cai.grand-challenge.org/ai-algorithm-submissions/) on the challenge website for more details, and the final steps needed to make a submission to the PI-CAI challenge.
