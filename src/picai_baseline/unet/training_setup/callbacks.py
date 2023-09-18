@@ -19,6 +19,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import torch
+import torch.nn.functional as F
 from picai_eval import Metrics
 from picai_eval.eval import evaluate_case
 from report_guided_annotation import extract_lesion_candidates
@@ -115,6 +116,15 @@ def optimize_model(model, optimizer, loss_func, train_gen, args, tracking_metric
         except Exception:
             inputs = torch.from_numpy(batch_data['data']).to(device)
             labels = torch.from_numpy(batch_data['seg']).to(device)
+
+        # bugfix for shape of targets
+        if labels.shape[1] == 1:
+            # labels now has shape (B, 1, D, H, W)
+            labels = labels[:, 0, ...]  # shape: (B, D, H, W)
+            labels = F.one_hot(labels.long(), num_classes=args.num_classes).float()  # shape: (B, D, H, W, C)
+            # reshape to (B, C, D, H, W)
+            labels = labels.permute(0, 4, 1, 2, 3).contiguous()
+
         outputs = model(inputs)
         loss = loss_func(outputs, labels)
         train_loss += loss.item()
