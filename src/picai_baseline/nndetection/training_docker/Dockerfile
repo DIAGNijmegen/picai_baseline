@@ -3,16 +3,12 @@ FROM nvcr.io/nvidia/pytorch:20.12-py3
 
 RUN groupadd -r user && useradd -m --no-log-init -r -g user user
 
-# Configuration
-RUN echo "PYTHONUNBUFFERED=1" >> /etc/environment && \
-    echo "OMP_NUM_THREADS=1" >> /etc/environment
-
 ARG env_det_num_threads=6
 ARG env_det_verbose=0
 # set env_det_verbose=1 for tqdm progress bars during training
 
 # Setup environment variables
-ENV det_data=/home/user/data det_models=/output/models det_num_threads=$env_det_num_threads det_verbose=$env_det_verbose OMP_NUM_THREADS=1
+ENV det_data=/home/user/data det_models=/output/models det_num_threads=$env_det_num_threads det_verbose=$env_det_verbose OMP_NUM_THREADS=1 PYTHONUNBUFFERED=1
 
 # Install a few dependencies that are not automatically installed
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive && apt-get install -y \
