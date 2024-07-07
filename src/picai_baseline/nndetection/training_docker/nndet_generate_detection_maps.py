@@ -12,6 +12,82 @@ from picai_prep.data_utils import atomic_image_write
 print = functools.partial(print, flush=True)
 
 
+def res2det(res, target_label=None, threshold=0.0, min_num_voxels=10, verbose=1, return_detection_maps=False):
+    """
+    Convert bounding boxes to non-overlapping detection maps
+
+    Adapted from https://github.com/MIC-DKFZ/nnDetection/blob/main/scripts/utils.py
+    """
+    instance_mask = np.zeros(res["original_size_of_raw_data"], dtype=float)
+
+    boxes = res["pred_boxes"]
+    scores = res["pred_scores"]
+    labels = res["pred_labels"]
+    print("boxes:", boxes)
+    print("scores:", scores)
+    print("labels:", labels)
+
+    _mask = scores >= threshold
+    boxes = boxes[_mask]
+    labels = labels[_mask]
+    scores = scores[_mask]
+
+    idx = np.argsort(scores)[::-1]
+    scores = scores[idx]
+    boxes = boxes[idx]
+    labels = labels[idx]
+
+    case_prediction_meta = {}
+    for instance_id, (pbox, pscore, plabel) in enumerate(zip(boxes, scores, labels), start=1):
+        # check if predicted box is for the target/cancer class
+        if target_label is None:
+            assert plabel == 0
+        elif target_label != plabel:
+            continue
+
+        case_prediction_meta[instance_id] = {
+            "score": float(pscore),
+            "label": int(plabel),
+            "box": list(map(int, pbox))
+        }
+
+        # construct 3D box of voxels for bounding box
+        mask_slicing = [
+            slice(int(pbox[0]) + 1, int(pbox[2])),
+            slice(int(pbox[1]) + 1, int(pbox[3])),
+        ]
+        neighbourhood_slicing = [
+            slice(max(0, int(pbox[0]) - 1), int(pbox[2]) + 2),
+            slice(max(0, int(pbox[1]) - 1), int(pbox[3]) + 2),
+        ]
+        if instance_mask.ndim == 3:
+            mask_slicing.append(slice(int(pbox[4]) + 1, int(pbox[5])))
+            neighbourhood_slicing.append(slice(max(0, int(pbox[4]) - 1), int(pbox[5]) + 2))
+
+        mask_slicing = tuple(mask_slicing)
+        neighbourhood_slicing = tuple(neighbourhood_slicing)
+
+        # check size of lesion candidate
+        num_voxels = instance_mask[mask_slicing].size
+        if num_voxels <= min_num_voxels:
+            continue
+
+        # check if adding lesion candidate would collide with prior (=higher confidence) lesion candidate
+        if np.max(instance_mask[neighbourhood_slicing]) == 0:
+            print(f"Setting box {mask_slicing} to p={pscore}") if verbose >= 2 else None
+            instance_mask[mask_slicing] = pscore
+        else:
+            print(f"Have overlap! Previous p={np.max(instance_mask[mask_slicing]):.4f}") if verbose >= 2 else None
+
+    # convert to SimpleITK
+    instance_mask_itk = sitk.GetImageFromArray(instance_mask)
+    instance_mask_itk.SetOrigin(res["itk_origin"])
+    instance_mask_itk.SetDirection(res["itk_direction"])
+    instance_mask_itk.SetSpacing(res["itk_spacing"])
+
+    return instance_mask_itk, case_prediction_meta
+
+
 def boxes2det(in_dir_pred, out_dir_det, target_label=None, threshold=0.0, min_num_voxels=10, return_detection_maps=True, verbose=1):
     """
     Convert bounding boxes to non-overlapping detection maps
@@ -41,78 +117,15 @@ def boxes2det(in_dir_pred, out_dir_det, target_label=None, threshold=0.0, min_nu
     y_det = {}
     prediction_meta = {}
     for cid in maybe_verbose_iterable(case_ids):
-        case_prediction_meta = {}
         res = load_pickle(in_dir_pred / f"{cid}_boxes.pkl")
-
-        instance_mask = np.zeros(res["original_size_of_raw_data"], dtype=float)
-
-        boxes = res["pred_boxes"]
-        scores = res["pred_scores"]
-        labels = res["pred_labels"]
-
-        _mask = scores >= threshold
-        boxes = boxes[_mask]
-        labels = labels[_mask]
-        scores = scores[_mask]
-
-        idx = np.argsort(scores)[::-1]
-        scores = scores[idx]
-        boxes = boxes[idx]
-        labels = labels[idx]
-
-        for instance_id, (pbox, pscore, plabel) in enumerate(zip(boxes, scores, labels), start=1):
-            # check if predicted box is for the target/cancer class
-            if target_label is None:
-                assert plabel == 0
-            elif target_label != plabel:
-                continue
-
-            case_prediction_meta[instance_id] = {
-                "score": float(pscore),
-                "label": int(plabel),
-                "box": list(map(int, pbox))
-            }
-
-            # construct 3D box of voxels for bounding box
-            mask_slicing = [
-                slice(int(pbox[0]) + 1, int(pbox[2])),
-                slice(int(pbox[1]) + 1, int(pbox[3])),
-            ]
-            neighbourhood_slicing = [
-                slice(max(0, int(pbox[0]) - 1), int(pbox[2]) + 2),
-                slice(max(0, int(pbox[1]) - 1), int(pbox[3]) + 2),
-            ]
-            if instance_mask.ndim == 3:
-                mask_slicing.append(slice(int(pbox[4]) + 1, int(pbox[5])))
-                neighbourhood_slicing.append(slice(max(0, int(pbox[4]) - 1), int(pbox[5]) + 2))
-
-            mask_slicing = tuple(mask_slicing)
-            neighbourhood_slicing = tuple(neighbourhood_slicing)
-
-            # check size of lesion candidate
-            num_voxels = instance_mask[mask_slicing].size
-            if num_voxels <= min_num_voxels:
-                continue
-
-            # check if adding lesion candidate would collide with prior (=higher confidence) lesion candidate
-            if np.max(instance_mask[neighbourhood_slicing]) == 0:
-                print(f"Setting box {mask_slicing} to p={pscore}") if verbose >= 2 else None
-                instance_mask[mask_slicing] = pscore
-            else:
-                print(f"Have overlap! Previous p={np.max(instance_mask[mask_slicing]):.4f}") if verbose >= 2 else None
-
-        # convert to SimpleITK
-        instance_mask_itk = sitk.GetImageFromArray(instance_mask)
-        instance_mask_itk.SetOrigin(res["itk_origin"])
-        instance_mask_itk.SetDirection(res["itk_direction"])
-        instance_mask_itk.SetSpacing(res["itk_spacing"])
+        det_map, case_det_meta = res2det(res, target_label=target_label, threshold=threshold, min_num_voxels=min_num_voxels, verbose=verbose)
 
         # save results
-        atomic_image_write(instance_mask_itk, str(out_dir_det / f"{cid}_detection_map.nii.gz"))
-        save_json(case_prediction_meta, out_dir_det / f"{cid}_boxes.json")
+        atomic_image_write(det_map, str(out_dir_det / f"{cid}_detection_map.nii.gz"))
+        save_json(case_det_meta, out_dir_det / f"{cid}_boxes.json")
         if return_detection_maps:
-            y_det[cid] = instance_mask_itk
-        prediction_meta[cid] = case_prediction_meta
+            y_det[cid] = det_map
+        prediction_meta[cid] = case_det_meta
 
     if verbose:
         print("Finished.")
