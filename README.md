@@ -49,11 +49,11 @@ Unless specified otherwise, this tutorial assumes that the [PI-CAI: Public Train
 
 ```bash
 # download all folds
-curl -C - "https://zenodo.org/record/6624726/files/picai_public_images_fold0.zip?download=1" --output picai_public_images_fold0.zip
-curl -C - "https://zenodo.org/record/6624726/files/picai_public_images_fold1.zip?download=1" --output picai_public_images_fold1.zip
-curl -C - "https://zenodo.org/record/6624726/files/picai_public_images_fold2.zip?download=1" --output picai_public_images_fold2.zip
-curl -C - "https://zenodo.org/record/6624726/files/picai_public_images_fold3.zip?download=1" --output picai_public_images_fold3.zip
-curl -C - "https://zenodo.org/record/6624726/files/picai_public_images_fold4.zip?download=1" --output picai_public_images_fold4.zip
+curl -C - "https://zenodo.org/api/records/6624726/files/picai_public_images_fold0.zip/content" --output picai_public_images_fold0.zip
+curl -C - "https://zenodo.org/api/records/6624726/files/picai_public_images_fold1.zip/content" --output picai_public_images_fold1.zip
+curl -C - "https://zenodo.org/api/records/6624726/files/picai_public_images_fold2.zip/content" --output picai_public_images_fold2.zip
+curl -C - "https://zenodo.org/api/records/6624726/files/picai_public_images_fold3.zip/content" --output picai_public_images_fold3.zip
+curl -C - "https://zenodo.org/api/records/6624726/files/picai_public_images_fold4.zip/content" --output picai_public_images_fold4.zip
 
 # unzip all folds
 unzip picai_public_images_fold0.zip -d /input/images/
